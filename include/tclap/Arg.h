@@ -280,7 +280,7 @@ class Arg
 		/**
 		 * Returns the argument description.
 		 */
-		std::string getDescription() const;
+		virtual std::string getDescription() const;
 
 		/**
 		 * Indicates whether the argument is required.
@@ -550,8 +550,6 @@ inline bool Arg::operator==(const Arg& a) const
 inline std::string Arg::getDescription() const
 {
 	std::string desc = "";
-	if ( _required )
-		desc = "(" + _requireLabel + ")  ";
 
 //	if ( _valueRequired )
 //		desc += "(value required)  ";

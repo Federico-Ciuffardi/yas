@@ -187,6 +187,11 @@ class UnlabeledValueArg : public ValueArg<T>
 		virtual bool processArg(int* i, std::vector<std::string>& args); 
 
 		/**
+		 * Overrides getDescription for specific behavior.
+		 */
+    virtual std::string getDescription() const;
+
+		/**
 		 * Overrides shortID for specific behavior.
 		 */
 		virtual std::string shortID(const std::string& val="val") const;
@@ -298,6 +303,19 @@ bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args)
 	return true;
 }
 
+
+/**
+ * Overrides getDescription for specific behavior.
+ */
+template<class T>
+std::string UnlabeledValueArg<T>::getDescription() const
+{
+  std::string desc = _description + "."; //+ ". Posible values: [" + _typeDesc + "]";
+  if(this->_constraint)
+    desc += " Posible values: " + this->_constraint->description() + ".";
+	return desc;
+}
+
 /**
  * Overriding shortID for specific output.
  */
@@ -305,7 +323,7 @@ template<class T>
 std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return std::string("<") + _typeDesc + ">";
+	return std::string("<") + _name + ">";
 }
 
 /**
@@ -319,7 +337,13 @@ std::string UnlabeledValueArg<T>::longID(const std::string& val) const
 	// Ideally we would like to be able to use RTTI to return the name
 	// of the type required for this argument.  However, g++ at least, 
 	// doesn't appear to return terribly useful "names" of the types.  
-	return std::string("<") + _typeDesc + ">";
+
+	/* return std::string("<") + _typeDesc + ">"; */
+  std::string lid = "<" + _name + ">";
+	/* if ( this->_required ) */
+	/* 	lid += "  (" + this->_requireLabel + ")  "; */
+	return lid;
+
 }
 
 /**
