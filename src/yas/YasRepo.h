@@ -2,30 +2,43 @@
 
 #pragma once
 
-#include <GitRepo/GitRepo.h>
+#include <git/GitRepo.h>
+#include <string>
 #include <util/url.h>
 #include <memory>
 #include <filesystem>
 
+using std::string;
 using std::unique_ptr;
 using std::filesystem::path;
 
+struct YasRepoPaths{
+  path syncDir;
+  path gitDir;
+  path configsDir;
+
+  path mntFile;
+  path repoConfigFile;
+
+  YasRepoPaths(string name);
+};
+
 class YasRepo {
 // const
-private:
-  const path HOME = string(getenv("HOME"));
-  const path LOCAL_DIR = HOME.string()+"/.local/share/yas";
-  const path REPOS_DIR = LOCAL_DIR.string()+"/repos";
+public:
+  const string name;
+  const YasRepoPaths paths;
 
 // variable 
 private:
   unique_ptr<GitRepo> gitRepo;
 
-
 // functions
 public:
   YasRepo(path p);
   YasRepo(url u);
+  path getLocal();
+  void init();
 
 private:
   YasRepo();

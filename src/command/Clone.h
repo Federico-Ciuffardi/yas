@@ -1,10 +1,7 @@
 #pragma once
 
-#include <Command/Command.h>
+#include "Command.h"
 #include <util/url.h>
-#include <string>
-
-using std::string;
 
 class Clone : public Command {
 

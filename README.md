@@ -1,13 +1,14 @@
-# yas
+# Yet Another Syncer
 
-Yet Another Syncer
+Sync your files.
 
 ## Using
 
-* Custom version of tclap 1.4
+* Custom version of tclap 1.2.5
   * Modified output
   * Fix for https://sourceforge.net/p/tclap/bugs/39/ 
 
+* libgit2
 
 ## Additional info
 

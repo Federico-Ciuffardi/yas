@@ -5,7 +5,8 @@
 #include <tclap/ValueArg.h>
 #include <yastclap/CustomOutput.h>
 
-#include <Command/Clone/Clone.h>
+#include <command/Clone.h>
+#include <command/Init.h>
 
 using namespace std;
 using namespace TCLAP;
@@ -14,7 +15,7 @@ const static string version = "0.0.0";
 
 const static string description = "Yet Another Syncer";
 
-const static vector<string> commands = {"add", "clone"};
+const static vector<string> commands = {"add", "clone", "init"};
 
 int main(int argc, char **argv) {
   try {
@@ -43,11 +44,11 @@ int main(int argc, char **argv) {
 
     /// get commandArgs
     vector<string> commandArgs = argCommandArgs.getValue();
-    commandArgs.insert(commandArgs.begin(), 1, command); // TODO improve
+    commandArgs.insert(commandArgs.begin(), 1, "yas "+command); // TODO improve
     Arg::endIgnoring(); // needed to parse again
 
-    // declare commands
     if (command == "add") {
+      // declare commands
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// file paths
@@ -62,15 +63,12 @@ int main(int argc, char **argv) {
       vector<string> files = argFiles.getValue();
 
       // build request
-      for(string file : files){
-        cout<<file<<" ";
-      }
-      cout<<endl;
     } else if (command == "clone") {
+      // declare commands
       TCLAP::CmdLine cmd(description, ' ', version);
 
-      /// file paths
-      UnlabeledValueArg<string> argUrl("url", "The (possibly remote) repository", true,"", "git urls");
+      /// url
+      UnlabeledValueArg<string> argUrl("url", "The url of a yas compatible git repository", true,"", "git url");
       cmd.add(argUrl);
 
       // parse
@@ -80,6 +78,22 @@ int main(int argc, char **argv) {
       Clone clone;
       clone.u = url(argUrl.getValue().c_str());
       clone.execute();
+    } else if (command == "init") {
+      // declare commands
+      TCLAP::CmdLine cmd(description, ' ', version);
+
+      /// url
+      UnlabeledValueArg<string> argUrl("url", "The url of an empty git repository", true,"", "git url");
+      cmd.add(argUrl);
+
+      // parse
+      cmd.parse(commandArgs);
+
+      // build request
+      Init init;
+      init.u = url(argUrl.getValue().c_str());
+      init.execute();
+
     }
   } catch (TCLAP::ArgException &e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId()

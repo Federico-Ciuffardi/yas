@@ -34,8 +34,13 @@ include_directories(GLOB_RECURSE MAIN_INCLUDES
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+# git2
 find_package(git2 REQUIRED)
 include_directories(${GIT2_INCLUDE_DIR})
+
+# yaml-cpp
+find_package(yaml-cpp)
+include_directories(${YAML_INCLUDE_DIRS})
 
 ########
 # Misc #
@@ -43,6 +48,6 @@ include_directories(${GIT2_INCLUDE_DIR})
 
 include_directories(${MAIN_INCLUDES})
 add_executable(main ${MAIN_SOURCES})
-target_link_libraries(main ${GIT2_LIBRARIES})
+target_link_libraries(main ${GIT2_LIBRARIES} ${YAML_CPP_LIBRARIES})
 set_property(TARGET main PROPERTY CXX_STANDARD 20)
 
