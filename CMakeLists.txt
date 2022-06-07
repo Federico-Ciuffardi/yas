@@ -3,6 +3,7 @@
 ########
 cmake_minimum_required(VERSION 3.23.1)
 project(yas)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # create `compile_commands.json` for autocompletion
 
 #################
@@ -49,5 +50,3 @@ include_directories(${YAML_INCLUDE_DIRS})
 include_directories(${MAIN_INCLUDES})
 add_executable(main ${MAIN_SOURCES})
 target_link_libraries(main ${GIT2_LIBRARIES} ${YAML_CPP_LIBRARIES})
-set_property(TARGET main PROPERTY CXX_STANDARD 20)
-
