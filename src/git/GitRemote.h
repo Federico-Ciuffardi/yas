@@ -19,11 +19,11 @@ private:
 // functions
 public:
   GitRemote(url u, git_direction dir);
-  GitRemote(git_repository *repo, git_direction dir);
   vector<const git_remote_head*> ls();
   ~GitRemote();
 
 private:
+  GitRemote(git_repository *repo, git_direction dir);
   GitRemote();
 
 friend GitRepo;
