@@ -1,9 +1,24 @@
-#include <tclap/StdOutput.h>
+# pragma once
 
-using namespace std;
-using namespace TCLAP;
+#include <string>
+#include <vector>
+#include <list>
+#include <iostream>
+#include <algorithm>
 
-class CustomOutput : public StdOutput {
+#include <tclap/CmdLineInterface.h>
+#include <tclap/CmdLineOutput.h>
+#include <tclap/XorHandler.h>
+#include <tclap/Arg.h>
+
+namespace TCLAP {
+
+/**
+ * A class that isolates any output from the CmdLine object so that it
+ * may be easily modified.
+ */
+
+class YasStdOutput : public CmdLineOutput  {
 
 public:
   virtual void usage(CmdLineInterface &c);
@@ -13,63 +28,63 @@ public:
   virtual void failure(CmdLineInterface &c, ArgException &e);
 
 protected:
-  void _shortUsage(CmdLineInterface &c, ostream &os) const;
+  void _shortUsage(CmdLineInterface &c, std::ostream &os) const;
 
-  void _longUsage(CmdLineInterface &c, ostream &os) const;
+  void _longUsage(CmdLineInterface &c, std::ostream &os) const;
 
-  void spacePrint(ostream &os, const string &s, int maxWidth, int indentSpaces,
+  void spacePrint(std::ostream &os, const std::string &s, int maxWidth, int indentSpaces,
                   int secondLineOffset) const;
 };
 
-inline void CustomOutput::version(CmdLineInterface &_cmd) {
-  string progName = _cmd.getProgramName();
-  string xversion = _cmd.getVersion();
+inline void YasStdOutput::version(CmdLineInterface &_cmd) {
+  std::string progName = _cmd.getProgramName();
+  std::string xversion = _cmd.getVersion();
 
-  cout << endl << progName << "  version: " << xversion << endl << endl;
+  std::cout << std::endl << progName << "  version: " << xversion << std::endl << std::endl;
 }
 
-inline void CustomOutput::usage(CmdLineInterface &_cmd) {
-  cout << endl << "USAGE: " << endl << endl;
+inline void YasStdOutput::usage(CmdLineInterface &_cmd) {
+  std::cout << std::endl << "USAGE: " << std::endl << std::endl;
 
-  _shortUsage(_cmd, cout);
+  _shortUsage(_cmd, std::cout);
 
 	spacePrint( std::cout, _cmd.getMessage(), 75, 3, 0 );
 
-  cout << endl << endl << "Where: " << endl << endl;
+  std::cout << std::endl << std::endl << "Where: " << std::endl << std::endl;
 
-  _longUsage(_cmd, cout);
+  _longUsage(_cmd, std::cout);
 }
 
-inline void CustomOutput::failure(CmdLineInterface &_cmd, ArgException &e) {
-  string progName = _cmd.getProgramName();
+inline void YasStdOutput::failure(CmdLineInterface &_cmd, ArgException &e) {
+  std::string progName = _cmd.getProgramName();
 
-  cerr << "PARSE ERROR: " << e.argId() << endl
-       << "             " << e.error() << endl
-       << endl;
+  std::cerr << "PARSE ERROR: " << e.argId() << std::endl
+       << "             " << e.error() << std::endl
+       << std::endl;
 
   if (_cmd.hasHelpAndVersion()) {
-    cerr << "Brief USAGE: " << endl;
+    std::cerr << "Brief USAGE: " << std::endl;
 
-    _shortUsage(_cmd, cerr);
+    _shortUsage(_cmd, std::cerr);
 
-    cerr << endl
-         << "For complete USAGE and HELP type: " << endl
-         << "   " << progName << " " << Arg::nameStartString() << "help" << endl
-         << endl;
+    std::cerr << std::endl
+         << "For complete USAGE and HELP type: " << std::endl
+         << "   " << progName << " " << Arg::nameStartString() << "help" << std::endl
+         << std::endl;
   } else
     usage(_cmd);
 
   throw ExitException(1);
 }
 
-inline void CustomOutput::_shortUsage(CmdLineInterface &_cmd,
-                                      ostream &os) const {
-  list<Arg *> argList = _cmd.getArgList();
-  string progName = _cmd.getProgramName();
+inline void YasStdOutput::_shortUsage(CmdLineInterface &_cmd,
+                                      std::ostream &os) const {
+  std::list<Arg *> argList = _cmd.getArgList();
+  std::string progName = _cmd.getProgramName();
   XorHandler xorHandler = _cmd.getXorHandler();
-  vector<vector<Arg *>> xorList = xorHandler.getXorList();
+  std::vector<std::vector<Arg *>> xorList = xorHandler.getXorList();
 
-  string s = progName + " ";
+  std::string s = progName + " ";
 
   // first the xor
   for (int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++) {
@@ -94,11 +109,11 @@ inline void CustomOutput::_shortUsage(CmdLineInterface &_cmd,
   spacePrint(os, s, 75, 3, secondLineOffset);
 }
 
-inline void CustomOutput::_longUsage(CmdLineInterface &_cmd,
-                                     ostream &os) const {
-  list<Arg *> argList = _cmd.getArgList();
+inline void YasStdOutput::_longUsage(CmdLineInterface &_cmd,
+                                     std::ostream &os) const {
+  std::list<Arg *> argList = _cmd.getArgList();
   XorHandler xorHandler = _cmd.getXorHandler();
-  vector<vector<Arg *>> xorList = xorHandler.getXorList();
+  std::vector<std::vector<Arg *>> xorList = xorHandler.getXorList();
 
   // first the xor
   for (int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++) {
@@ -110,7 +125,7 @@ inline void CustomOutput::_longUsage(CmdLineInterface &_cmd,
       if (it + 1 != xorList[i].end())
         spacePrint(os, "-- OR --", 75, 9, 0);
     }
-    os << endl << endl;
+    os << std::endl << std::endl;
   }
 
   // then the rest
@@ -118,11 +133,11 @@ inline void CustomOutput::_longUsage(CmdLineInterface &_cmd,
     if (!xorHandler.contains((*it))) {
       spacePrint(os, (*it)->longID(), 75, 3, 3);
       spacePrint(os, (*it)->getDescription(), 75, 5, 0);
-      os << endl;
+      os << std::endl;
     }
 }
 
-inline void CustomOutput::spacePrint(ostream &os, const string &s, int maxWidth,
+inline void YasStdOutput::spacePrint(std::ostream &os, const std::string &s, int maxWidth,
                                      int indentSpaces,
                                      int secondLineOffset) const {
   int len = static_cast<int>(s.length());
@@ -176,6 +191,8 @@ inline void CustomOutput::spacePrint(ostream &os, const string &s, int maxWidth,
   } else {
     for (int i = 0; i < indentSpaces; i++)
       os << " ";
-    os << s << endl;
+    os << s << std::endl;
   }
 }
+
+} //namespace TCLAP

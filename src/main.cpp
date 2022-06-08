@@ -3,7 +3,7 @@
 #include <string>
 #include <tclap/CmdLine.h>
 #include <tclap/ValueArg.h>
-#include <yastclap/CustomOutput.h>
+#include <tclap/YasStdOutput.h>
 
 #include <command/Clone.h>
 #include <command/Init.h>
@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
     // declare
     TCLAP::CmdLine cmd(description, ' ', version);
 
-    CustomOutput customOutput;
-    cmd.setOutput(&customOutput);
+    TCLAP::YasStdOutput yasStdOutput;
+    cmd.setOutput(&yasStdOutput);
 
     /// command
     ValuesConstraint<string> commandsConstraint(commands);
