@@ -20,7 +20,7 @@ struct YasRepoPaths{
   path mntFile;
   path repoConfigFile;
 
-  YasRepoPaths(string name);
+  YasRepoPaths(const string &name);
 };
 
 class YasRepo {
@@ -35,8 +35,8 @@ private:
 
 // functions
 public:
-  YasRepo(path p);
-  YasRepo(url u);
+  YasRepo(const path &p);
+  YasRepo(const url &u);
   path getLocal();
   void init();
 

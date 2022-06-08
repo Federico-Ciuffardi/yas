@@ -21,16 +21,16 @@ private:
 // functions
 public:
   // open
-  GitRepo(path p);
+  GitRepo(const path &p);
   // clone
-  GitRepo(url u, path p);
+  GitRepo(const url &u, const path &p);
   // add
-  void add(vector<path>);
+  void add(const vector<path> &paths);
   void addAll();
   // commit
-  void commit(string message, string name, string email);
+  void commit(const string &message, const string &name, const string &email);
   // push
-  void push(vector<string> refspecs = {"refs/heads/master"});
+  void push(const vector<string> &refspecs = {"refs/heads/master"});
   // destructor 
   ~GitRepo();
 

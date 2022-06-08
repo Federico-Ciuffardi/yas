@@ -14,7 +14,7 @@ using std::filesystem::create_directories;
 //////////////////
 
 // clone to path
-GitRepo::GitRepo(url u, path p) {
+GitRepo::GitRepo(const url &u, const path &p) {
   // create dir if not exists
   create_directories(p);
 
@@ -38,7 +38,7 @@ GitRepo::GitRepo(url u, path p) {
 }
 
 // open
-GitRepo::GitRepo(path p) {
+GitRepo::GitRepo(const path &p) {
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
 
@@ -59,7 +59,7 @@ GitRepo::~GitRepo() {
 //////////////
 
 // add
-void GitRepo::add(vector<path> paths){
+void GitRepo::add(const vector<path> &paths){
   // load index
   git_index* index = NULL;
   int error = git_repository_index(&index,repo);
@@ -96,7 +96,7 @@ void GitRepo::addAll(){
 }
 
 // commit
-void GitRepo::commit(string message, string name, string email){
+void GitRepo::commit(const string &message, const string &name, const string &email){
   // load index
   git_index* index = NULL;
   int error = git_repository_index(&index,repo);
@@ -151,7 +151,7 @@ void GitRepo::commit(string message, string name, string email){
   git_index_free(index);
 }
 
-void GitRepo::push(vector<string> refspecs){
+void GitRepo::push(const vector<string> &refspecs){
 
   // create remote
   GitRemote remote(repo, GIT_DIRECTION_PUSH);

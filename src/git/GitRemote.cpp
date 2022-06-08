@@ -8,7 +8,7 @@ using std::endl;
 using std::cerr;
 
 // open
-GitRemote::GitRemote(url u, git_direction dir) {
+GitRemote::GitRemote(const url &u, const git_direction &dir) {
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
 
@@ -29,7 +29,7 @@ GitRemote::GitRemote(url u, git_direction dir) {
   }
 }
 
-GitRemote::GitRemote(git_repository *repo, git_direction dir) {
+GitRemote::GitRemote(git_repository *repo, const git_direction &dir) {
   // create
   int error = git_remote_lookup(&remote, repo, "origin");
   if (error < 0) {

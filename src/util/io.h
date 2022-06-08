@@ -16,7 +16,7 @@ using std::string;
 using std::cin;
 using std::cout;
 
-inline string readStdio(string prompt = "", string def = "") {
+inline string readStdio(const string &prompt = "", const string &def = "") {
   string s;
   cout << prompt;
   if (!def.empty()) {
@@ -32,7 +32,7 @@ inline string readStdio(string prompt = "", string def = "") {
   return s;
 }
 
-inline string readFile(path p) {
+inline string readFile(const path &p) {
   ifstream in(p, ios::in | ios::binary);
   if (in) {
     string contents;
@@ -47,7 +47,7 @@ inline string readFile(path p) {
   throw(errno);
 }
 
-inline void writeYaml(YAML::Node yaml, path p) {
+inline void writeYaml(const YAML::Node &yaml, const path &p) {
   create_directory(p.parent_path());
   ofstream out(p, ios::out);
   out<<yaml;

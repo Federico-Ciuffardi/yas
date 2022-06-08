@@ -11,14 +11,14 @@ using std::filesystem::exists;
 using std::endl;
 using std::cerr;
 
-inline string nameFromUrl(url u){
+inline string nameFromUrl(const url &u){
   string name = u;
   name = name.substr(name.find_last_of('/')+1);
   name = name.substr(0,name.find('.'));
   return name;
 }
 
-inline string nameFromPath(path p){
+inline string nameFromPath(const path &p){
   string name = p;
   name = name.substr(name.find_last_of('/')+1);
   return name;
@@ -27,7 +27,7 @@ inline string nameFromPath(path p){
 //////////////////
 // YasRepoPaths //
 //////////////////
-YasRepoPaths::YasRepoPaths(string name){
+YasRepoPaths::YasRepoPaths(const string &name){
   GlobalConfig& gc = GlobalConfig::getInstance();
   
   gitDir     = gc.reposPath / name;
@@ -35,7 +35,6 @@ YasRepoPaths::YasRepoPaths(string name){
   configsDir = gitDir / ".yas";
 
   repoConfigFile = configsDir / "config";
-
 }
 
 /////////////
@@ -43,11 +42,11 @@ YasRepoPaths::YasRepoPaths(string name){
 /////////////
 
 // poner todos los params restantes (repo_file_dir, etc)
-YasRepo::YasRepo(url u) : name(nameFromUrl(u)), paths(name) {
+YasRepo::YasRepo(const url &u) : name(nameFromUrl(u)), paths(name) {
   gitRepo = make_unique<GitRepo>(u, paths.gitDir);
 }
 
-YasRepo::YasRepo(path p) : name(nameFromPath(p)), paths(name) {
+YasRepo::YasRepo(const path &p) : name(nameFromPath(p)), paths(name) {
   gitRepo = make_unique<GitRepo>(p);
 }
 

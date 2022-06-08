@@ -27,8 +27,4 @@ public:
   const path& dataPath = _dataPath;
   const path& configPath = _configPath;
   const path& reposPath = _reposPath;
-
-#define LOCAL_DIR std::string(HOME + "/.local/share/yas")
-#define REPOS_DIR std::string(LOCAL_DIR + "/repos")
-
 };
