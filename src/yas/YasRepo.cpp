@@ -2,34 +2,34 @@
 
 #include <yas/GlobalConfig.h>
 
+#include <filesystem>
 #include <iostream>
 #include <util/io.h>
-#include <filesystem>
 
+using std::cerr;
+using std::endl;
 using std::make_unique;
 using std::filesystem::exists;
-using std::endl;
-using std::cerr;
 
-inline string nameFromUrl(const url &u){
+inline string nameFromUrl(const url &u) {
   string name = u;
-  name = name.substr(name.find_last_of('/')+1);
-  name = name.substr(0,name.find('.'));
+  name        = name.substr(name.find_last_of('/') + 1);
+  name        = name.substr(0, name.find('.'));
   return name;
 }
 
-inline string nameFromPath(const path &p){
+inline string nameFromPath(const path &p) {
   string name = p;
-  name = name.substr(name.find_last_of('/')+1);
+  name        = name.substr(name.find_last_of('/') + 1);
   return name;
 }
 
 //////////////////
 // YasRepoPaths //
 //////////////////
-YasRepoPaths::YasRepoPaths(const string &name){
-  GlobalConfig& gc = GlobalConfig::getInstance();
-  
+YasRepoPaths::YasRepoPaths(const string &name) {
+  GlobalConfig &gc = GlobalConfig::getInstance();
+
   gitDir     = gc.reposPath / name;
   syncDir    = gitDir;
   configsDir = gitDir / ".yas";
@@ -51,14 +51,14 @@ YasRepo::YasRepo(const path &p) : name(nameFromPath(p)), paths(name) {
 }
 
 // init
-void YasRepo::init(){
-  if(exists(paths.repoConfigFile)){
-    cerr<<"Could not init: the repo is already initialized"<<endl;
+void YasRepo::init() {
+  if (exists(paths.repoConfigFile)) {
+    cerr << "Could not init: the repo is already initialized" << endl;
     exit(1);
   }
 
   /// create necesary stuff (mainly mount point)
-  YAML::Node  yml;
+  YAML::Node yml;
 
   //// mount
   yml["sync_point"] = readStdio("sync_point", "$HOME");

@@ -2,17 +2,17 @@
 
 #pragma once
 
+#include <filesystem>
 #include <git/GitRepo.h>
+#include <memory>
 #include <string>
 #include <util/url.h>
-#include <memory>
-#include <filesystem>
 
 using std::string;
 using std::unique_ptr;
 using std::filesystem::path;
 
-struct YasRepoPaths{
+struct YasRepoPaths {
   path syncDir;
   path gitDir;
   path configsDir;
@@ -24,16 +24,16 @@ struct YasRepoPaths{
 };
 
 class YasRepo {
-// const
+  // const
 public:
-  const string name;
+  const string       name;
   const YasRepoPaths paths;
 
-// variable 
+  // variable
 private:
   unique_ptr<GitRepo> gitRepo;
 
-// functions
+  // functions
 public:
   YasRepo(const path &p);
   YasRepo(const url &u);

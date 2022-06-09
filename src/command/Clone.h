@@ -5,11 +5,11 @@
 
 class Clone : public Command {
 
-// variable 
+  // variable
 public:
   url u;
 
-// functions
+  // functions
 public:
   virtual void execute();
 };

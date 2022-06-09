@@ -2,23 +2,23 @@
 
 #pragma once
 
+#include <filesystem>
+#include <git/GitRemote.h>
+#include <git2.h>
 #include <string>
 #include <util/url.h>
-#include <git2.h>
-#include <filesystem>
 #include <vector>
-#include <git/GitRemote.h>
 
-using std::filesystem::path;
 using std::vector;
+using std::filesystem::path;
 
 class GitRepo {
 
-// variable 
+  // variable
 private:
-  git_repository* repo  = NULL;
+  git_repository *repo = NULL;
 
-// functions
+  // functions
 public:
   // open
   GitRepo(const path &p);
@@ -31,7 +31,7 @@ public:
   void commit(const string &message, const string &name, const string &email);
   // push
   void push(const vector<string> &refspecs = {"refs/heads/master"});
-  // destructor 
+  // destructor
   ~GitRepo();
 
 private:

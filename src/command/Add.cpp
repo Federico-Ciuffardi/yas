@@ -1,6 +1,3 @@
 #include "Add.h"
 
-void Add::execute(){
-
-}
-
+void Add::execute() {}

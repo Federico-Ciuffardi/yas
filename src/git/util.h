@@ -8,9 +8,9 @@ using std::string;
 
 // callback to get credentials
 inline int credentialsCB(git_cred **out, [[maybe_unused]] const char *url,
-                  const char *username_from_url,
-                  [[maybe_unused]] unsigned int allowed_types,
-                  [[maybe_unused]] void *payload) {
+                         const char                   *username_from_url,
+                         [[maybe_unused]] unsigned int allowed_types,
+                         [[maybe_unused]] void        *payload) {
 
   // TODO do not harcode ($HOME/.ssh/config)
   // TODO ssh passphrase

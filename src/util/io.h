@@ -1,20 +1,20 @@
 #pragma once
 
-#include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <yaml-cpp/yaml.h>
 
 using std::ifstream;
-using std::ofstream;
 using std::ios;
+using std::ofstream;
 using std::string;
 using std::filesystem::path;
 
-using std::string;
 using std::cin;
 using std::cout;
+using std::string;
 
 inline string readStdio(const string &prompt = "", const string &def = "") {
   string s;
@@ -50,7 +50,6 @@ inline string readFile(const path &p) {
 inline void writeYaml(const YAML::Node &yaml, const path &p) {
   create_directory(p.parent_path());
   ofstream out(p, ios::out);
-  out<<yaml;
+  out << yaml;
   out.close();
 }
-

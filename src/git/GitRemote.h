@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <util/url.h>
 #include <git2.h>
+#include <util/url.h>
 #include <vector>
 
 using std::vector;
@@ -12,19 +12,19 @@ class GitRepo; // forward declaration
 
 class GitRemote {
 
-// variable 
+  // variable
 private:
-  git_remote* remote = NULL;
+  git_remote *remote = NULL;
 
-// functions
+  // functions
 public:
   GitRemote(const url &u, const git_direction &dir);
-  vector<const git_remote_head*> ls();
+  vector<const git_remote_head *> ls();
   ~GitRemote();
 
 private:
   GitRemote(git_repository *repo, const git_direction &dir);
   GitRemote();
 
-friend GitRepo;
+  friend GitRepo;
 };

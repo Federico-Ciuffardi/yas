@@ -26,9 +26,10 @@ int main(int argc, char **argv) {
     cmd.setOutput(&yasStdOutput);
 
     /// command
-    ValuesConstraint<string> commandsConstraint(commands);
-    IgnoreRestVisitor v;
-    UnlabeledValueArg<string> argCommand("command", "Command", true, "", &commandsConstraint, false, &v);
+    ValuesConstraint<string>  commandsConstraint(commands);
+    IgnoreRestVisitor         v;
+    UnlabeledValueArg<string> argCommand("command", "Command", true, "",
+                                         &commandsConstraint, false, &v);
     cmd.add(argCommand);
 
     /// command args
@@ -44,16 +45,17 @@ int main(int argc, char **argv) {
 
     /// get commandArgs
     vector<string> commandArgs = argCommandArgs.getValue();
-    commandArgs.insert(commandArgs.begin(), 1, "yas "+command); // TODO improve
-    Arg::endIgnoring(); // needed to parse again
+    commandArgs.insert(commandArgs.begin(), 1,
+                       "yas " + command); // TODO improve
+    Arg::endIgnoring();                   // needed to parse again
 
     if (command == "add") {
       // declare commands
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// file paths
-      UnlabeledMultiArg<string> argFiles(
-          "files", "Files to add", false, "file paths");
+      UnlabeledMultiArg<string> argFiles("files", "Files to add", false,
+                                         "file paths");
       cmd.add(argFiles);
 
       // parse
@@ -68,7 +70,9 @@ int main(int argc, char **argv) {
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// url
-      UnlabeledValueArg<string> argUrl("url", "The url of a yas compatible git repository", true,"", "git url");
+      UnlabeledValueArg<string> argUrl(
+          "url", "The url of a yas compatible git repository", true, "",
+          "git url");
       cmd.add(argUrl);
 
       // parse
@@ -83,7 +87,8 @@ int main(int argc, char **argv) {
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// url
-      UnlabeledValueArg<string> argUrl("url", "The url of an empty git repository", true,"", "git url");
+      UnlabeledValueArg<string> argUrl(
+          "url", "The url of an empty git repository", true, "", "git url");
       cmd.add(argUrl);
 
       // parse
@@ -93,11 +98,9 @@ int main(int argc, char **argv) {
       Init init;
       init.u = url(argUrl.getValue().c_str());
       init.execute();
-
     }
   } catch (TCLAP::ArgException &e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId()
               << std::endl;
   }
 }
-

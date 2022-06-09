@@ -1,18 +1,20 @@
 #include "Init.h"
 
+#include <git/GitRemote.h>
 #include <iostream>
 #include <yas/YasRepo.h>
-#include <git/GitRemote.h>
 
-using std::endl;
 using std::cerr;
+using std::endl;
 
-void Init::execute(){
+void Init::execute() {
   // validate repo before initialize
-  /// is empty? 
+  /// is empty?
   GitRemote gitRemote(u, GIT_DIRECTION_FETCH);
-  if(!gitRemote.ls().empty()){
-    cerr<<"Could not init yas repository:"<<endl<<"The provided git repo is not empty, please provide a empty repo"<<endl;
+  if (!gitRemote.ls().empty()) {
+    cerr << "Could not init yas repository:" << endl
+         << "The provided git repo is not empty, please provide a empty repo"
+         << endl;
     exit(1);
   }
 
@@ -22,4 +24,3 @@ void Init::execute(){
   // init
   yasRepo.init();
 }
-
