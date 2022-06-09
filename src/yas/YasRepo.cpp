@@ -27,10 +27,10 @@ inline string nameFromPath(const path &p) {
 //////////////////
 // YasRepoPaths //
 //////////////////
-YasRepoPaths::YasRepoPaths(const string &name) {
+YasRepo::Paths::Paths(const string &name) {
   GlobalConfig &gc = GlobalConfig::getInstance();
 
-  gitDir     = gc.reposPath / name;
+  gitDir     = gc.paths.reposDir / name;
   syncDir    = gitDir;
   configsDir = gitDir / ".yas";
 

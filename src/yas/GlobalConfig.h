@@ -7,6 +7,13 @@ using std::string;
 using std::filesystem::path;
 
 class GlobalConfig {
+  // inner structs
+  struct Paths {
+    path dataDir;
+    path configDir;
+    path reposDir;
+  };
+
   // singleton boilerplate
 public:
   static GlobalConfig &getInstance();
@@ -15,19 +22,15 @@ private:
   GlobalConfig();
 
 public:
-  GlobalConfig(GlobalConfig const &) = delete;
+  GlobalConfig(GlobalConfig const &)   = delete;
   void operator=(GlobalConfig const &) = delete;
 
   // configs
   /// public are read only (const ref to private)
   /// private are read/write (must be friend to write)
 private:
-  path _dataPath;
-  path _configPath;
-  path _reposPath;
+  Paths _paths;
 
 public:
-  const path &dataPath   = _dataPath;
-  const path &configPath = _configPath;
-  const path &reposPath  = _reposPath;
+  const Paths &paths = _paths;
 };

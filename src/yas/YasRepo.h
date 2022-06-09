@@ -12,22 +12,23 @@ using std::string;
 using std::unique_ptr;
 using std::filesystem::path;
 
-struct YasRepoPaths {
-  path syncDir;
-  path gitDir;
-  path configsDir;
-
-  path mntFile;
-  path repoConfigFile;
-
-  YasRepoPaths(const string &name);
-};
-
 class YasRepo {
+  // inner structs
+  struct Paths {
+    path syncDir;
+    path gitDir;
+    path configsDir;
+
+    path mntFile;
+    path repoConfigFile;
+
+    Paths(const string &name);
+  };
+
   // const
 public:
-  const string       name;
-  const YasRepoPaths paths;
+  const string name;
+  const Paths  paths;
 
   // variable
 private:
