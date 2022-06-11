@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+
+source ../test_lib
+
+set -o errexit -o pipefail set -o errtrace
+
+# execute
+../../build/yas clone https://github.com/Federico-Ciuffardi/nay.git
+
+# assert 
+## get from github
+printf "Remote:\n"
+assert_equal_dirs "expected/repos/nay" "$REPOS_DIR/nay"

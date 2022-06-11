@@ -1,0 +1,75 @@
+#compdef nay
+_nay() {
+  local context curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local ret=1
+
+  _arguments -C \
+    '1: :_nay_cmds' \
+    '*::arg:->args' \
+  && ret=0
+
+  case $state in
+    (args)
+      curcontext="${curcontext%:*:*}:nay-cmd-$words[1]:"
+      case $line[1] in
+        (add|remove)
+          _arguments \
+            '1: :_nay_repo' \
+            '*: :_files' \
+            '-e[All the added files will be encrypted]' \
+            '--encrypt[All the added files will be encrypted]' \
+            '-c[Ignore files that are already in cache]' \
+            '--conservative[Ignore files that are already in cache]' \
+          && ret=0
+        ;;
+        (sync|pull_force|pkg|nonpkg|bootstrap|full_sync)
+          _arguments \
+            '1:: :_nay_repos' \
+          && ret=0
+        ;;
+        *)
+          _call_function ret _nay_cmd_$words[1] && ret=0
+          (( ret )) && _message 'no more arguments'
+        ;;
+      esac
+    ;;
+
+  esac
+}
+
+(( $+functions[_nay_cmds] )) ||
+_nay_cmds() {
+  local commands; commands=(
+    # {classpath,cp}':Disnay the computed classpath'
+    'init:Create an empty setup'
+    'add:Add a directory/file to the setup setup'
+    'remove:Stop tracking a directory/file'
+    'sync:Syncs the config files'
+    'pull_force:Pull the config from remote and REPLACES the local one'
+    'ssh:Sets all the git origins to use ssh'
+    'setpass:Add/modify the password used for decryption'
+    'decrypt:Decrypt a file encrypted with nay'
+  )
+  _describe -t commands 'nay! command' commands "$@"
+}
+
+(( $+functions[_nay_repos] )) ||
+_nay_repos() {
+  local commands; commands=(
+    `ls $HOME/.local/share/nay/repos`
+    '--all'
+  )
+  _describe -t commands 'nay! command' commands "$@"
+}
+
+(( $+functions[_nay_repo] )) ||
+_nay_repo() {
+  local commands; commands=(
+    `ls $HOME/.local/share/nay/repos`
+  )
+  _describe -t commands 'nay! command' commands "$@"
+}
+
+_nay "$@"

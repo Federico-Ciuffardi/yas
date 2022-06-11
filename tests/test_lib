@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+REPOS_DIR="$HOME/.local/share/yas/repos"
+
+function assert_equal_dirs() {
+  expected="$1"
+  got="$2"
+  /bin/diff --color -r --exclude=.git "$expected" "$got"
+  if [ $? -eq 0 ] ; then
+    printf "✓ OK"
+  else
+    printf "X FAIL"
+  fi
+  printf "\n"
+}

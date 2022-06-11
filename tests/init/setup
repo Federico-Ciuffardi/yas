@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+
+source ../test_lib
+
+set -o errexit -o pipefail set -o errtrace
+
+# Setup
+## clean
+gh repo delete --confirm https://github.com/Federico-Ciuffardi/yas-test || true
+rm -fr "$REPOS_DIR"/yas-test
+rm -fr got
+## init
+gh repo create --private https://github.com/Federico-Ciuffardi/yas-test

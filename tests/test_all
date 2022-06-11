@@ -1,0 +1,85 @@
+#! /usr/bin/env bash
+function draw_spinner() {
+	local comment="${1}"
+	shift
+
+  if [[ `echo ${@}|cut -d' ' -f1` = "sudo" ]]; then
+    sudo -v || exit 1
+  fi
+
+  output_file=$(mktemp)
+  (${@} &>"${output_file}") &
+
+	local pid="${!}"
+	local i='1'
+	local spinner_seq='/-\|'
+
+	while [[ -d "/proc/${pid}" ]]; do
+		sleep '0.10'
+		printf "\r${spinner_seq:i++%${#spinner_seq}:1} $comment"
+	done
+
+	wait "${pid}"
+
+	local ecode="${?}"
+
+	if [ "${ecode}" -eq "0" ]; then
+		printf "\r\u001b[32m✓\u001b[0m "
+	else
+		printf "\r\u001b[31mx\u001b[0m "
+	fi
+	printf "${comment}\n"
+  [ "${ecode}" -eq "0" ] || cat "${output_file}"
+
+  return "${ecode}"
+}
+
+[ -z ${HEADING_LEVEL} ] && HEADING_LEVEL=1
+
+function increase_heading_level(){
+  export HEADING_LEVEL=$((HEADING_LEVEL+1))
+}
+
+
+function decrease_heading_level(){
+  export HEADING_LEVEL=$((HEADING_LEVEL-1))
+}
+
+function reset_heading_level(){
+  export LAST_HEADING_LEVEL=1
+  export HEADING_LEVEL=1
+}
+
+# usage: 'draw_heading [heading text] [heading level]
+function draw_heading() {
+
+	local text="${1}"
+
+  local inidcator_color='\u001b[34m'
+  local indicator='#'
+  local text_color='\u001b[37;1m'
+
+  local reset_color='\u001b[0m'
+
+  if [[ ! -z "${LAST_HEADING_LEVEL}" ]] && [[ "${LAST_HEADING_LEVEL}" > "${HEADING_LEVEL}" ]]; then
+    printf '\n'
+  fi
+
+  export LAST_HEADING_LEVEL="${HEADING_LEVEL}"
+
+  printf "${inidcator_color}"
+  for ((i=1;i<="${HEADING_LEVEL}";i++)); do
+      printf "${indicator}"
+  done 
+  printf " ${text_color}${text}${reset_color}\n"
+}
+
+for dir in $(ls) ; do
+  if [ -f "$dir/test" ] ; then 
+    cd "$dir"
+    printf "$dir\n"
+    [ -f "test" ] && draw_spinner "setup" "./setup"
+    draw_spinner "test" "./test"
+    cd - > /dev/null
+  fi
+done

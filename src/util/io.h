@@ -24,10 +24,12 @@ inline string readStdio(const string &prompt = "", const string &def = "") {
   }
   cout << ":";
 
-  if (!def.empty() && cin.peek() == '\n') {
-    s = def;
-  } else {
+  if (def.empty() || cin.peek() != '\n') {
     cin >> s;
+  }
+
+  if (s.empty()) { // use default when non interactive
+    s = def;
   }
   return s;
 }

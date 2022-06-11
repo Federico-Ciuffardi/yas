@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+
+source ../test_lib
+
+set -o errexit -o pipefail set -o errtrace
+
+# execute
+../../build/yas init git@github.com:Federico-Ciuffardi/yas-test.git
+
+# assert 
+## get from github
+mkdir -p got/github
+git clone git@github.com:Federico-Ciuffardi/yas-test.git got/github/yas-test
+
+## check local
+printf "Local:\n"
+assert_equal_dirs "expected/repos/yas-test" "got/github/yas-test"
+
+## check remote
+printf "Remote:\n"
+assert_equal_dirs "expected/repos/yas-test" "$REPOS_DIR/yas-test"

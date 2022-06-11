@@ -1,0 +1,724 @@
+#!/usr/bin/env bash
+
+source "/usr/lib/naylib"
+
+EXE_NAME="nay"
+
+NAME="Not Another Yogurt"
+
+VERSION="0.1.1"
+
+HELP_MSG="$NAME $VERSION
+
+Usage: $EXE_NAME [<flags>] [<command> [<args>]]
+
+Flags:
+  -v, --version     Output version information and exit
+  -h, --help        Display this help and exit
+
+Commands:
+  init              Create an empty setup
+  add               Start tracking a directory/file
+  remove            Stop tracking a directory/file 
+  sync              Syncs all the tracked files
+  pull_force        Pull the config from remote and REPLACES the local one
+  push_force        Push the config from local and REPLACES the remote one
+  setpass           Add/modify the password used for decryption
+  decrypt           Decrypt a file encrypted with nay
+
+Args:
+  -h, --help        Display help for the command (including the rest of the args)
+"
+PULL_FORCE_HELP_MSG="$NAME $VERSION
+
+Usage: $EXE_NAME pull_force [<args>] <repo>
+
+Args:
+  -h, --help        Display this help and exit
+  -y, --yes         Do not ask for confirmation
+  -a, --all         Pull force all the initialized repos (no <repo> needed)
+"
+
+
+#########
+# MISC  #
+#########
+
+## trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
+function ctrl_c() {
+        printf "\n\nAborted, exiting...\n"
+        exit 127
+}
+
+#########
+# Paths #
+#########
+
+# config 
+global_config_dir="$HOME/.config/$EXE_NAME"
+
+repos_file="$global_config_dir/repos"
+
+# Local
+local_dir="$HOME/.local/share/$EXE_NAME"
+
+repos_dir="$local_dir/repos"
+
+#######
+# Aux #
+#######
+function set_repo(){
+  repo_dir="$repos_dir/$1"
+
+  if [ ! -d "$repo_dir" ] ; then
+
+    printf "\"%s\" not initialized, please initialize it with '$EXE_NAME init' first\n" "$repo_dir" 
+    exit 1
+  fi
+
+  repo_name=$1
+  repo_file_dir="$repo_dir/files"
+  repo_file_metadata="$repo_dir/metadata"
+  repo_dirs="$repo_dir/dirs"
+  repo_sync_hooks="$repo_dir/sync_hooks"
+  repo_mnt="$repo_dir/mnt"
+  repo_encrypted="$repo_dir/encrypted"
+
+  if [ -f $repo_mnt ] ; then 
+    mnt_point="$(bash -c "echo `cat $repo_mnt`" | sed 's#/$##g')"
+    [ ! -z $mnt_point ] || mnt_point="/"
+  else
+    mnt_point=''
+  fi
+}
+
+function sync_hooks(){
+  if [ -d $repo_sync_hooks ] && [ ! -z "$(ls -A $repo_sync_hooks)" ]  ; then
+    draw_heading "Sync Hooks"
+    increase_heading_level
+    for f in $repo_sync_hooks/*; do
+      draw_heading "${f##*/}"
+      increase_heading_level
+      $f
+      decrease_heading_level
+    done
+    decrease_heading_level
+  fi
+}
+
+function  print_warning(){
+  printf " \u001b[33m!\u001b[0m "
+  echo "$1"
+}
+function  print_error(){
+  printf " \u001b[31mx\u001b[0m "
+  echo "$1"
+}
+
+function set_gpg(){
+  [ $GPG_SET -eq 1 ] && return
+  command -V gpg >/dev/null 2>&1 && GPG="gpg" || GPG="gpg2"
+	PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  if [ ! -r "$PASSWORD_STORE_DIR/.gpg-id" ] || ! "$GPG" --list-secret-keys "$(cat "$PASSWORD_STORE_DIR/.gpg-id")" >/dev/null 2>&1 ; then 
+    print_error "Encryption needs a password store"
+    echo "First run \`pass init <yourgpgemail>\` to set up a password archive."
+    echo "(If you don't already have a GPG key pair, first run \`$GPG --full-generate-key\`.)"
+    exit 1 
+  fi
+  if [ ! -f $PASSWORD_STORE_DIR/nay.gpg ] ; then
+    print_warning "Set a password for nay. Must match the last used nay password."
+  fi
+  GPG_SET=1
+}
+
+############
+# Commands #
+############
+function setpass(){
+  set_gpg
+  if [ -f $PASSWORD_STORE_DIR/nay.gpg ] ; then
+    failed=$(mktemp)
+    for repo in $(ls "$repos_dir") ; do
+      set_repo $repo
+      if [ -f $repo_encrypted ] ; then
+        cat $repo_encrypted | while read FILE ; do
+          real="`echo $mnt_point | sed 's#/$##g'`/$FILE"
+          backup="$repo_file_dir/$FILE"
+          pass show nay | gpg --output - --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 "$backup" &>/dev/null || \
+            echo "$FILE" >> $failed
+        done
+      fi
+    done
+    pass insert nay || true 
+    cd $repos_dir
+    for repo in $(ls "$repos_dir") ; do
+      set_repo $repo
+      if [ -f $repo_encrypted ] ; then
+        cat $repo_encrypted | while read FILE ; do
+          real="`echo $mnt_point | sed 's#/$##g'`/$FILE"
+          backup="$repo_file_dir/$FILE"
+          if grep -x "$FILE" $failed &>/dev/null ; then
+            if pass show nay | gpg --output - --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 "$backup" &>/dev/null ; then 
+              sed -i "\#^$FILE#d" $failed  
+            fi
+          else
+            pass show nay | gpg --output "$backup" --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 --symmetric "$real" 
+          fi
+        done
+      fi
+    done
+    if [ -s $failed ] ; then
+      print_error "The following files failed to be decrypted please try another password"
+      cat $failed
+    fi
+  else
+    pass insert nay || true 
+  fi
+}
+
+function decrypt(){
+  pass show nay | gpg --output - --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 "$1" 2>/dev/null || (print_error "$1 can't be decrypted, please check your password" ; exit 1)
+}
+
+# REMOVE
+function remove(){
+  set_repo $1
+  shift
+
+  if [ $# -eq 0 ] ; then
+    echo "Nothing specified, nothing removed."
+    exit 1
+  fi
+
+  while [ $# -gt 0 ]; do
+    removal="$1"
+    removal_rp="$(realpath -m $removal)" 
+    removal_rel_rp="$(realpath -m $removal --relative-to="$mnt_point")" 
+    removal_cache_path="$repo_file_dir/$removal_rel_rp"
+
+    if [ ! -e "$removal_rp" ] ; then
+      print_error "No file on $removal_rp" 
+      shift
+      continue
+    elif [ "$(echo $removal_rel_rp | cut -d'/' -f1)" = ".." ] ; then
+      print_error "$removal_rp outside $mnt_point"
+      shift
+      continue
+    elif [ ! -e "$removal_cache_path" ] ; then
+      print_error "$removal_rp not tracked on $repo_name"
+      shift
+      continue
+    fi
+
+    while IFS= read -r file; do
+      rel_rp="$(realpath -m $file --relative-to="$repo_file_dir")" 
+
+      [ ! -f $repo_dirs ] || sed -i "\#^$rel_rp\$#d" $repo_dirs  
+      [ ! -f $repo_encrypted ] || sed -i "\#^$rel_rp\$#d" $repo_encrypted  
+      [ ! -f $repo_file_metadata ] || sed -i "\#^$rel_rp #d" $repo_file_metadata 
+    done << EOF
+$(find "$removal_cache_path")
+EOF
+
+    rm -r $removal_cache_path
+
+    shift
+  done
+
+}
+
+# ADD
+function add(){
+  set_repo $1
+  shift
+
+  conservative_flag=0
+  encrypt_flag=0
+  additions=""
+  
+  while [ $# -gt 0 ]; do
+    case $1 in
+      -e|--encrypt)
+        # all the added files will be encrypted
+        set_gpg
+        encrypt_flag=1
+        ;;
+      -c|--conservative)
+        # ignore files that are already in cache
+        conservative_flag=1
+        ;;
+      *)
+        additions="$additions$1"$'\n'
+        ;;
+    esac
+    shift
+  done
+
+  if [ -z "$additions" ] ; then
+    echo "Nothing specified, nothing added."
+    exit 1
+  fi
+
+  OLDIFS=$IFS
+  IFS=$'\n'
+  for addition in $additions ; do
+    addition_rp="$(realpath -m $addition)"
+    addition_rel_rp="$(realpath -m $addition --relative-to="$mnt_point")"
+
+    # check for errors
+    if [ ! -e "$addition_rp" ] ; then
+      print_error "No file on $addition_rp" 
+      continue
+    elif [ "$(echo $addition_rel_rp | cut -d'/' -f1)" = ".." ] ; then
+      print_error "$addition_rp outside $mnt_point"
+      continue
+    fi
+
+    # insert addition to the repo tracked dirs if the additon is a dir
+    if [ -d "$addition_rp" ] ; then
+      grep -x "$addition_rel_rp" $repo_dirs &>/dev/null || echo "$addition_rel_rp" >> $repo_dirs
+    fi
+
+    changes=$(mktemp)
+    # put the addtion in the cache
+    while IFS= read -r file; do
+      rp="$(realpath -m $file)" 
+      rel_rp="$(realpath -m $file --relative-to="$mnt_point")" 
+      cache_path="$repo_file_dir/$rel_rp"
+
+      if [ -e $cache_path ] && [ $conservative_flag -eq 1 ] ; then
+        continue
+      fi
+
+      rel_rp_aux="/$rel_rp"
+      mkdir -p "$repo_file_dir${rel_rp_aux%/*}" # remove the last file/dir from the rel_rp_aux path ex /home/fede -> /home
+
+      if [ $encrypt_flag -eq 0 ] && ! grep -x "$rel_rp" $repo_encrypted &>/dev/null  ; then
+        cp -ur --preserve=timestamps --no-preserve=mode,ownership "$rp" "$repo_file_dir${rel_rp_aux%/*}"
+      else
+        pass show nay | gpg --output "$cache_path" --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 --symmetric "$rp" &>/dev/null
+        grep -x "$rel_rp" $repo_encrypted &>/dev/null || echo "$rel_rp" >> $repo_encrypted
+      fi
+
+      sed -i "s#^$rel_rp .*\$#$rel_rp $(stat --format="%a %U %G" $rp)#gw$changes" $repo_file_metadata
+      if [ ! -s $changes ] ; then 
+        echo "$rel_rp $(stat --format="%a %U %G" $rp)" >> $repo_file_metadata
+      fi
+
+    done << EOF
+$(find "$addition" -type f)
+EOF
+  done
+  IFS=$OLDIFS
+
+}
+
+function local2cache(){
+  if [ -f $repo_dirs ] ; then
+    cat $repo_dirs | while read dir ; do
+      add "`echo $repo_name | sed 's#/$##g'`" -c $mnt_point/$dir
+    done
+  fi
+
+  touch $repo_file_metadata
+  changes=$(mktemp)
+
+  for FILE in $(git -C "$repo_file_dir" ls-tree -r --name-only origin/master && git -C "$repo_file_dir" ls-files --others --exclude-standard) ; do
+    real="`echo $mnt_point | sed 's#/$##g'`/$FILE"
+    backup=$repo_file_dir/$FILE
+
+    if [ -f $backup ] || [ -z "$(git -C "$repo_file_dir" ls-tree HEAD $FILE 2>/dev/null)" ] ; then
+      if [ -f $real ] ; then
+        if [ $1 = "push_force" ] || [ $real -nt $backup ] ; then
+          mkdir -p "${backup%/*}"
+          if ! grep -x "$FILE" $repo_encrypted &>/dev/null ; then
+            cp -u --preserve=timestamps --no-preserve=mode,ownership "$real" "$backup"
+          else
+            set_gpg
+            decrypted=$(mktemp)
+            pass show nay | gpg --output "$decrypted" --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 "$backup" &>/dev/null || (print_error "$backup can't be decrypted, please check your password" ; exit 1)
+
+            if ! cmp $real $decrypted &>/dev/null ; then
+              pass show nay | gpg --output "$backup" --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 --symmetric "$real" &>/dev/null
+            fi
+          fi
+        fi
+        MERGED=${MERGED:-}
+        if [ -z $MERGED ] || [ $MERGED -eq 0 ] ; then
+          sed -i "s#^$FILE .*\$#$FILE $(stat --format="%a %U %G" $real)#gw$changes" $repo_file_metadata
+          if [ ! -s $changes ] ; then 
+            echo "$FILE $(stat --format="%a %U %G" $real)" >> $repo_file_metadata
+          fi
+        fi
+      fi
+    fi
+  done
+
+  if [ ! -z "$(git -C "$repo_file_dir" status --porcelain)" ]; then
+    git -C "$repo_dir" add . &>/dev/null
+    output_file=$(mktemp)
+    git -C "$repo_dir" commit -m "`cat '/etc/hostname'`" &>"${output_file}" || (cat "${output_file}" && exit 1)
+    git -C "$repo_dir" --no-pager diff --name-status  HEAD~1 HEAD
+  else
+    printf "No changes\n"
+  fi
+}
+
+function remote2cache() {
+  if [ -z "`git -C "$repo_dir" rev-list HEAD..origin/master`" ] ; then
+    printf "No changes\n"
+  else
+    git -C "$repo_dir" --no-pager diff --name-status HEAD origin/master
+    case $1 in
+      pull_force)
+        git -C "$repo_dir" pull origin master &>/dev/null
+        ;;
+      sync)
+        git -C "$repo_dir" rebase origin/master &>/dev/null || true
+        if git -C "$repo_dir" rebase --show-current-patch &>/dev/null ; then
+         echo
+         git -C "$repo_dir" rebase --continue
+         exit $?
+        fi
+        ;;
+    esac
+
+    for FILE in $(git -C "$repo_dir" ls-files) ; do
+      TIME=$(git -C "$repo_dir" log --pretty=format:%cd -n 1 --date=iso -- "$repo_dir/$FILE")
+      TIME=`echo $TIME | sed 's/-//g;s/ //;s/://;s/:/\./;s/ .*//'`
+      touch -m -t "$TIME" "$repo_dir/$FILE"
+    done
+  fi
+}
+
+function cache2local() {
+  export change=0
+
+  while IFS= read -r backup; do
+    [ ! -d "$backup" ] || continue 
+    relative="`realpath -m --relative-to="$repo_file_dir" "$backup"`"
+    real="`echo "$mnt_point" | sed 's#/$##g'`/$relative"
+
+    if grep -x "$relative" $repo_encrypted &>/dev/null ; then
+      set_gpg
+      decrypted=$(mktemp)
+      pass show nay | gpg --output "$decrypted" --no-symkey-cache --pinentry-mode=loopback --batch --yes --passphrase-fd 0 "$backup" &>/dev/null || (print_error "$backup can't be decrypted, please check your password" ; exit 1)
+      touch -r "$backup" "$decrypted" &>/dev/null
+      backup="$decrypted"
+    fi
+
+    if [ -f "$real" ] ; then
+        if [ $1 = "pull_force" ] || [ "$backup" -nt "$real" ] ;then
+          if ! cmp -s $backup $real ; then
+            export change=1 
+            printf "M %s\n" "$real"
+            cp --preserve=timestamps --no-preserve=mode,ownership "$backup" "$real" &> /dev/null ||\
+              (sudo cp --preserve=timestamps --no-preserve=mode,ownership "$backup" "$real")
+          else
+            # export change=1 (tecnically a change but not necesary to let the user know as no datais modified)
+            # printf "T %s\n" "$real"
+            touch -r "$backup" "$real" &>/dev/null || (sudo touch -r "$backup" "$real")
+          fi
+        fi
+    elif [ ! -d "$real" ] ; then
+      export change=1
+      printf "A %s\n" "$real"
+      mkdir -p "${real%/*}" &> /dev/null || sudo mkdir -p "${real%/*}"
+      cp --preserve=timestamps --no-preserve=mode,ownership "$backup" "$real" &> /dev/null ||\
+        (sudo cp --preserve=timestamps --no-preserve=mode,ownership "$backup" "$real")
+    fi
+  done << EOF
+`find "$repo_file_dir"`
+EOF
+
+  if [ "$change" -eq 0 ] ; then
+    printf "No changes\n"
+  fi
+
+  if [ -f "$repo_file_metadata" ] ; then
+    while IFS= read -r line; do
+      file=$(echo "$mnt_point"/$(echo "$line" | rev | cut -d' ' -f4- | rev ) | sed 's#//#/#g')
+      permissions=$(echo "$line" | rev | cut -d' ' -f3 | rev)
+      owner=$(echo "$line" | rev | cut -d' ' -f2 | rev)
+      group=$(echo "$line" | rev | cut -d' ' -f1 | rev)
+      [ $(stat --format="%a" "$file") = "$permissions" ] || \
+        chmod "$permissions" "$file" &> /dev/null || sudo chmod "$permissions" "$file"
+      [ $(stat --format="%U" "$file") = "$owner" ] || \
+        chown "$owner" "$file" &> /dev/null|| sudo chown "$owner" "$file"
+      [ $(stat --format="%G" "$file") = "$group" ] || \
+        chgrp "$group" "$file" &> /dev/null || sudo chgrp "$group" "$file"
+  done << EOF
+`cat $repo_file_metadata`
+EOF
+  fi
+
+}
+
+function cache2remote(){
+  if [ -z "`git -C "$repo_dir" rev-list origin/master..HEAD`" ] ; then
+    printf "No changes\n"
+  else
+    git -C "$repo_dir" --no-pager diff --name-status origin/master HEAD
+    git -C "$repo_dir" push origin master -q
+  fi
+}
+
+## PUSH FORCE
+function push_force() {
+  if [ ! -z $1 ] && [ $1 = "--all" ] ; then
+    for repo in `ls "$repos_dir"` ; do
+      reset_heading_level
+      printf "\u001b[32;1m$repo\u001b[0m\n"
+      push_force $repo
+      printf "\n"
+    done
+    exit 0
+  fi
+
+  set_repo $1
+
+  draw_heading "Push Force"
+  increase_heading_level
+
+  printf "This will replace your remote config with your local one without synchronization.\n"
+  printf "Are you sure?[y/N]:"
+  read awns
+  [ "$awns" = "y" ] || exit 0
+
+  git -C "$repo_dir" fetch -q
+
+  git -C "$repo_dir" rebase --abort &>/dev/null || true 
+  git -C "$repo_dir" reset --hard origin/master &>/dev/null
+
+  draw_heading  "local -> cache    remote"
+  local2cache "push_force"
+
+  draw_heading "local    cache -> remote"
+  cache2remote "push_force"
+
+}
+
+
+## PULL FORCE
+function pull_force() {
+  yes=0
+  repo=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        echo "$PULL_FORCE_HELP_MSG"
+        exit 0
+        ;;
+      -y|--yes)
+        yes=1
+        ;;
+      -a|--all)
+        for repo in `ls "$repos_dir"` ; do
+          reset_heading_level
+          printf "\u001b[32;1m$repo\u001b[0m\n"
+          pull_force $repo
+          printf "\n"
+        done
+        exit 0
+        ;;
+      -*)
+        echo "'$1' is not a \"$EXE_NAME pull_force\" flag. See '$EXE_NAME pull_force --help'."
+        exit 2
+        ;;
+      *)
+        repo="$1"
+        break
+        ;;
+    esac
+    shift
+  done
+
+  set_repo $repo
+
+  draw_heading "Pull Force"
+  increase_heading_level
+
+  if [ $yes -ne 1 ] ; then
+    printf "This will replace your local config with your remote one without synchronization.\n"
+    printf "Are you sure?[y/N]:"
+    read awns
+    [ "$awns" = "y" ] || exit 0
+  fi
+
+  git -C "$repo_dir" fetch -q
+
+  git -C "$repo_dir" rebase --abort &>/dev/null || true 
+  git -C "$repo_dir" reset --hard origin/master &>/dev/null
+
+  draw_heading  "local    cache <- remote"
+  remote2cache "pull_force"
+
+  draw_heading "local <- cache    remote"
+  cache2local "pull_force"
+
+  # Hooks
+  decrease_heading_level
+  sync_hooks
+}
+
+## SYNC
+function sync() {
+  if [ ! -z $1 ] && [ $1 = "--all" ] ; then
+    for repo in `ls "$repos_dir"` ; do
+      reset_heading_level
+      printf "\u001b[32;1m$repo\u001b[0m\n"
+      sync $repo
+      printf "\n"
+    done
+    exit 0
+  fi
+
+  set_repo $1
+
+  draw_heading "Sync"
+  increase_heading_level
+
+  MERGED=0
+  if git -C "$repo_dir" rebase --show-current-patch &>/dev/null ; then
+    if mergeinfo=`git -c core.editor=true -C "$repo_dir" rebase --continue 2>&1` ; then
+      MERGED=1
+      echo "Conflicts resolved, proceeding with the synchronization"
+    else
+      echo "$mergeinfo"
+      exit 1
+    fi
+  fi
+  
+  git -C "$repo_dir" fetch -q
+
+  draw_heading "local -> cache    remote"
+  local2cache "sync"
+
+  draw_heading "local    cache <- remote"
+  remote2cache "sync"
+
+  draw_heading "local    cache -> remote"
+  cache2remote "sync"
+
+  draw_heading "local <- cache    remote"
+  cache2local "sync"
+
+  # Hooks
+  decrease_heading_level
+  sync_hooks
+}
+
+## INIT 
+function init() {
+  if [ $# -gt 0 ] ; then
+    repo_url=$1
+  else
+    printf "Enter a valid (e.g. empty) git repository to keep your setup (ssh and private recomended):\n"
+    read repo_url
+  fi
+  repo_name="`echo ${repo_url##*/} | cut -d'.' -f1`"
+  repo_dir="$repos_dir/$repo_name"
+
+  if [ -d "$repo_dir" ] ; then
+    printf "$repo_name already initialized\n"
+    printf "Delete $repo_dir if this is not OK\n"
+    exit 0
+    # printf "Dirty directory remove?[Y/n]:"
+    # read awns
+    # [ -z $awns ] || [ $awns = "y" ] || exit 0
+    # rm -rf "$repo_dir"
+    # printf "\n"
+  fi
+
+  # set up 
+  mkdir -p $repos_dir  
+  cd $repos_dir
+  git clone $repo_url &> /dev/null
+  # set_repo ${repo_name}
+
+  # git -C "$repo_dir" init -b master &>/dev/null
+  # git -C "$repo_dir" remote add origin $repo_url &>/dev/null
+  # git  -C "$repo_dir" pull origin master &>/dev/null || true
+
+  # mkdir -p $repo_file_dir  
+  # mkdir -p $repo_sync_hooks
+
+  # if [ ! -f $repo_mnt ] ; then
+  #   printf "Enter a mount point for the files [\$HOME]:"
+  #   read mnt
+  #   [ ! -z $mnt ] || mnt="\$HOME"
+  #   echo "$mnt" > "$repo_dir/mnt"
+  # fi
+
+  # touch $repo_file_metadata 
+  # touch $repo_encrypted
+  # touch $repo_dirs
+
+  # git -C "$repo_dir" add . &>/dev/null
+  # git -C "$repo_dir" commit -m "`cat '/etc/hostname'`" &>/dev/null
+  # git -C "$repo_dir" push -u origin master &>/dev/null
+
+  printf "Initialized!\n"
+}
+
+function ssh(){
+  for dir in "$HOME/.build/"* ; do
+    cd "$dir"
+    git remote set-url origin `git remote get-url origin | sed 's,https://github.com/,git@github.com:,g'`
+  done
+}
+
+########
+# Main #
+########
+if [[ ${DEBUG-} =~ ^1|yes|true$ ]]; then
+    set -o xtrace       # Trace the execution of the script (debug)
+fi
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+GPG_SET=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      echo "$HELP_MSG"
+      exit 0
+      ;;
+    -v|--version)
+      echo "$NAME $VERSION"
+      exit 0
+      ;;
+    ssh|add|remove|sync|pull_force|push_force)
+      reset_heading_level
+      if [ $# -lt 2 ] ; then 
+        echo "No repo provided."
+        echo "Use one of the following or init a new one."
+        ls "$repos_dir"
+        exit 1
+      fi
+      $@  
+      exit $?
+      ;;
+    init|decrypt|setpass)
+      reset_heading_level
+      $@
+      exit $?
+      ;;
+    -*)
+      echo "'$1' is not a $EXE_NAME flag. See '$EXE_NAME --help'."
+      exit 2
+      ;;
+    *)
+      echo "'$1' is not a $EXE_NAME command. See '$EXE_NAME --help'."
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+printf "missing command\nTry '$EXE_NAME --help' for more information.\n"
