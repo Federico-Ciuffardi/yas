@@ -11,9 +11,10 @@
 
 const std::string version     = "0.0.0";
 const std::string description = "Yet Another Syncer";
+const std::string command_name = "yas";
 
-void parse_add_args(std::vector<std::string> &commandArgs) {
-  // declare commands
+void parse_add_args(std::vector<std::string> &subcommand_args) {
+  // declare subcommand
   TCLAP::CmdLine cmd(description, ' ', version);
 
   /// file paths
@@ -22,7 +23,7 @@ void parse_add_args(std::vector<std::string> &commandArgs) {
   cmd.add(argFiles);
 
   // parse
-  cmd.parse(commandArgs);
+  cmd.parse(subcommand_args);
 
   /// get files
   std::vector<std::string> files = argFiles.getValue();
@@ -31,8 +32,8 @@ void parse_add_args(std::vector<std::string> &commandArgs) {
   // TODO
 }
 
-void parse_clone_args(std::vector<std::string> &commandArgs) {
-  // declare commands
+void parse_clone_args(std::vector<std::string> &subcommand_args) {
+  // declare subcommand
   TCLAP::CmdLine cmd(description, ' ', version);
 
   /// url
@@ -41,7 +42,7 @@ void parse_clone_args(std::vector<std::string> &commandArgs) {
   cmd.add(argUrl);
 
   // parse
-  cmd.parse(commandArgs);
+  cmd.parse(subcommand_args);
 
   // build request
   Clone clone;
@@ -49,8 +50,8 @@ void parse_clone_args(std::vector<std::string> &commandArgs) {
   clone.execute();
 }
 
-void parse_init_args(std::vector<std::string> &commandArgs) {
-  // declare commands
+void parse_init_args(std::vector<std::string> &subcommand_args) {
+  // declare subcommand
   TCLAP::CmdLine cmd(description, ' ', version);
 
   /// synto
@@ -65,7 +66,7 @@ void parse_init_args(std::vector<std::string> &commandArgs) {
   cmd.add(argUrl);
 
   // parse
-  cmd.parse(commandArgs);
+  cmd.parse(subcommand_args);
 
   // build request
   Init init;
@@ -74,44 +75,50 @@ void parse_init_args(std::vector<std::string> &commandArgs) {
   init.execute();
 }
 
+std::vector<std::string> parse_main_args(int argc, char **argv) {
+  // declare
+  TCLAP::CmdLine cmd(description, ' ', version);
+
+  TCLAP::YasStdOutput yasStdOutput;
+  cmd.setOutput(&yasStdOutput);
+
+  /// subcommand 
+  const std::vector<std::string>        subcommands = {"add", "clone", "init"};
+  TCLAP::ValuesConstraint<std::string>  subcommands_constraint(subcommands);
+  TCLAP::IgnoreRestVisitor              v; // stop parsing at the subcommand
+  TCLAP::UnlabeledValueArg<std::string> arg_subcommand(
+      "subcommand", "Subcommand", true, "", &subcommands_constraint, false, &v);
+  cmd.add(arg_subcommand);
+
+  /// subcommand args
+  TCLAP::UnlabeledMultiArg<std::string> arg_subcommand_args(
+      "subcommand_args", "Args used in subcommands.", false, "subcommand args");
+  cmd.add(arg_subcommand_args);
+
+  // parse
+  cmd.parse(argc, argv);
+
+  /// get subcommand
+  std::string sub_command = arg_subcommand.getValue();
+
+  /// get subcommand_args
+  std::vector<std::string> subcommand_args = arg_subcommand_args.getValue();
+  subcommand_args.insert(subcommand_args.begin(), 1, command_name + " " + sub_command);
+  TCLAP::Arg::endIgnoring();
+
+  return subcommand_args;
+}
+
 int main(int argc, char **argv) {
   try {
-    // declare
-    TCLAP::CmdLine cmd(description, ' ', version);
-
-    TCLAP::YasStdOutput yasStdOutput;
-    cmd.setOutput(&yasStdOutput);
-
-    /// command
-    const std::vector<std::string>        commands = {"add", "clone", "init"};
-    TCLAP::ValuesConstraint<std::string>  commandsConstraint(commands);
-    TCLAP::IgnoreRestVisitor              v; // stop parsing at the command
-    TCLAP::UnlabeledValueArg<std::string> argCommand(
-        "command", "Command", true, "", &commandsConstraint, false, &v);
-    cmd.add(argCommand);
-
-    /// command args
-    TCLAP::UnlabeledMultiArg<std::string> argCommandArgs(
-        "command_args", "Commands used in the args.", false, "command args");
-    cmd.add(argCommandArgs);
-
-    // parse
-    cmd.parse(argc, argv);
-
-    /// get command
-    std::string command = argCommand.getValue();
-
-    /// get commandArgs
-    std::vector<std::string> command_args = argCommandArgs.getValue();
-    command_args.insert(command_args.begin(), 1, "yas " + command);
-    TCLAP::Arg::endIgnoring();
-
-    if (command == "add") {
-      parse_add_args(command_args);
-    } else if (command == "clone") {
-      parse_clone_args(command_args);
-    } else if (command == "init") {
-      parse_init_args(command_args);
+    std::vector<std::string> subcommand_args = parse_main_args(argc, argv);
+    const std::string subcommand = subcommand_args[0].substr(command_name.size() + 1);
+    if (subcommand == "add") {
+      parse_add_args(subcommand_args);
+    } else if (subcommand == "clone") {
+      parse_clone_args(subcommand_args);
+    } else if (subcommand == "init") {
+      parse_init_args(subcommand_args);
     }
   } catch (TCLAP::ArgException &arg_exception) {
     std::cerr << "error: " << arg_exception.error() << " for arg "
