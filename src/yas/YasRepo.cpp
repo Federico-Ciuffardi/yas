@@ -9,8 +9,8 @@
 
 namespace fs = std::filesystem;
 
-inline std::string nameFromUrl(const url &u) {
-  std::string name = u;
+inline std::string nameFromUrl(const nonstd::url &url) {
+  std::string name = url;
   name             = name.substr(name.find_last_of('/') + 1);
   name             = name.substr(0, name.find('.'));
   return name;
@@ -39,8 +39,8 @@ YasRepo::Paths::Paths(const std::string &name) {
 /////////////
 
 // poner todos los params restantes (repo_file_dir, etc)
-YasRepo::YasRepo(const url &u) : name(nameFromUrl(u)), paths(name) {
-  gitRepo = make_unique<GitRepo>(u, paths.gitDir);
+YasRepo::YasRepo(const nonstd::url &url) : name(nameFromUrl(url)), paths(name) {
+  gitRepo = make_unique<GitRepo>(url, paths.gitDir);
 }
 
 YasRepo::YasRepo(const fs::path &p) : name(nameFromPath(p)), paths(name) {
@@ -59,7 +59,7 @@ void YasRepo::init(fs::path _syncto) {
 
   //// mount
   if (_syncto.empty()) {
-    syncto = readStdio("syncto", "$HOME");
+    syncto = readStdio("sync_point", "$HOME");
   } else {
     syncto = _syncto;
   }

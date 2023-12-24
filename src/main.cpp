@@ -46,7 +46,7 @@ void parse_clone_args(std::vector<std::string> &subcommand_args) {
 
   // build request
   Clone clone;
-  clone.u = url(argUrl.getValue().c_str());
+  clone.u = nonstd::url(argUrl.getValue().c_str());
   clone.execute();
 }
 
@@ -70,8 +70,7 @@ void parse_init_args(std::vector<std::string> &subcommand_args) {
 
   // build request
   Init init;
-  init.u      = url(argUrl.getValue().c_str());
-  init.syncto = argSyncto.getValue();
+  init.set_args({argUrl.getValue().c_str(), argSyncto.getValue()});
   init.execute();
 }
 

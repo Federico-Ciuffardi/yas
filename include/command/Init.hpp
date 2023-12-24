@@ -8,13 +8,15 @@
 namespace fs = std::filesystem;
 
 class Init : public Command {
-
-  // variable
 public:
-  url      u;
-  fs::path syncto;
+  struct Args {
+    nonstd::url url;
+    fs::path sync_to;
+  };
 
-  // functions
-public:
   virtual void execute();
+  void set_args(const Args&);
+
+private:
+  Args m_args;
 };

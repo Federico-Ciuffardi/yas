@@ -7,7 +7,7 @@
 #include <iostream>
 
 // open
-GitRemote::GitRemote(const url &u, const git_direction &dir) {
+GitRemote::GitRemote(const nonstd::url &u, const git_direction &dir) {
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
 

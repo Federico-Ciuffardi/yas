@@ -14,9 +14,9 @@ namespace fs = std::filesystem;
 //////////////////
 
 // clone to path
-GitRepo::GitRepo(const url &u, const fs::path &p) {
+GitRepo::GitRepo(const nonstd::url &url, const fs::path &path) {
   // create dir if not exists
-  fs::create_directories(p);
+  fs::create_directories(path);
 
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
@@ -30,7 +30,7 @@ GitRepo::GitRepo(const url &u, const fs::path &p) {
   /// TODO handle progress
 
   // execute clone
-  int error = git_clone(&repo, u.c_str(), p.c_str(), &options);
+  int error = git_clone(&repo, url.c_str(), path.c_str(), &options);
   if (error < 0) {
     std::cerr << "Could not clone git repository:" << std::endl
               << git_error_last()->message << std::endl;

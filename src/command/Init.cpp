@@ -9,7 +9,7 @@
 void Init::execute() {
   // validate repo before initialize
   /// is empty?
-  GitRemote gitRemote(u, GIT_DIRECTION_FETCH);
+  GitRemote gitRemote(m_args.url, GIT_DIRECTION_FETCH);
   if (!gitRemote.ls().empty()) {
     std::cerr
         << "Could not init yas repository:" << std::endl
@@ -19,8 +19,12 @@ void Init::execute() {
   }
 
   // clone
-  YasRepo yasRepo(u);
+  YasRepo yasRepo(m_args.url);
 
   // init
-  yasRepo.init(syncto);
+  yasRepo.init(m_args.sync_to);
 }
+
+void Init::set_args(const Args &args) {
+  m_args = args;
+};

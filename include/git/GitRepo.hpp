@@ -24,7 +24,7 @@ public:
   // open
   GitRepo(const fs::path &p);
   // clone
-  GitRepo(const url &u, const fs::path &p);
+  GitRepo(const nonstd::url &u, const fs::path &p);
   // add
   void add(const std::vector<fs::path> &paths);
   void addAll();

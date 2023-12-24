@@ -7,7 +7,7 @@ class Clone : public Command {
 
   // variable
 public:
-  url u;
+  nonstd::url u;
 
   // functions
 public:

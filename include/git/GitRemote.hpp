@@ -18,7 +18,7 @@ private:
 
   // functions
 public:
-  GitRemote(const url &u, const git_direction &dir);
+  GitRemote(const nonstd::url &u, const git_direction &dir);
   std::vector<const git_remote_head *> ls();
   ~GitRemote();
 

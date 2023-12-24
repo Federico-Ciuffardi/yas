@@ -34,8 +34,8 @@ private:
 
   // functions
 public:
-  YasRepo(const fs::path &p);
-  YasRepo(const url &u);
+  YasRepo(const fs::path &path);
+  YasRepo(const nonstd::url &url);
   fs::path getLocal();
   void     init(fs::path);
 
