@@ -301,9 +301,9 @@ function add(){
         grep -x "$rel_rp" $repo_encrypted &>/dev/null || echo "$rel_rp" >> $repo_encrypted
       fi
 
-      sed -i "s#^$rel_rp .*\$#$rel_rp $(stat --format="%a %U %G" $rp)#gw$changes" $repo_file_metadata
+      sed -i "s#^$rel_rp .*\$#$rel_rp $(stat --format="%a" $rp)#gw$changes" $repo_file_metadata
       if [ ! -s $changes ] ; then 
-        echo "$rel_rp $(stat --format="%a %U %G" $rp)" >> $repo_file_metadata
+        echo "$rel_rp $(stat --format="%a" $rp)" >> $repo_file_metadata
       fi
 
     done << EOF
@@ -346,9 +346,9 @@ function local2cache(){
         fi
         MERGED=${MERGED:-}
         if [ -z $MERGED ] || [ $MERGED -eq 0 ] ; then
-          sed -i "s#^$FILE .*\$#$FILE $(stat --format="%a %U %G" $real)#gw$changes" $repo_file_metadata
+          sed -i "s#^$FILE .*\$#$FILE $(stat --format="%a" $real)#gw$changes" $repo_file_metadata
           if [ ! -s $changes ] ; then 
-            echo "$FILE $(stat --format="%a %U %G" $real)" >> $repo_file_metadata
+            echo "$FILE $(stat --format="%a" $real)" >> $repo_file_metadata
           fi
         fi
       fi
@@ -384,11 +384,14 @@ function remote2cache() {
         ;;
     esac
 
+    old_IFS=$IFS
+    IFS=$'\n'
     for FILE in $(git -C "$repo_dir" ls-files) ; do
-      TIME=$(git -C "$repo_dir" log --pretty=format:%cd -n 1 --date=iso -- "$repo_dir/$FILE")
-      TIME=`echo $TIME | sed 's/-//g;s/ //;s/://;s/:/\./;s/ .*//'`
+      TIME="$(git -C "$repo_dir" log --pretty=format:%cd -n 1 --date=iso -- "$repo_dir/$FILE")"
+      TIME="`echo "$TIME" | sed 's/-//g;s/ //;s/://;s/:/\./;s/ .*//'`"
       touch -m -t "$TIME" "$repo_dir/$FILE"
     done
+    IFS=$old_IFS
   fi
 }
 
@@ -438,16 +441,12 @@ EOF
 
   if [ -f "$repo_file_metadata" ] ; then
     while IFS= read -r line; do
-      file=$(echo "$mnt_point"/$(echo "$line" | rev | cut -d' ' -f4- | rev ) | sed 's#//#/#g')
-      permissions=$(echo "$line" | rev | cut -d' ' -f3 | rev)
-      owner=$(echo "$line" | rev | cut -d' ' -f2 | rev)
-      group=$(echo "$line" | rev | cut -d' ' -f1 | rev)
+      file=$(echo "$mnt_point"/$(echo "$line" | rev | cut -d' ' -f2- | rev ) | sed 's#//#/#g')
+      permissions=$(echo "$line" | rev | cut -d' ' -f1 | rev)
+      # owner=$(echo "$line" | rev | cut -d' ' -f2 | rev)
+      # group=$(echo "$line" | rev | cut -d' ' -f1 | rev)
       [ $(stat --format="%a" "$file") = "$permissions" ] || \
         chmod "$permissions" "$file" &> /dev/null || sudo chmod "$permissions" "$file"
-      [ $(stat --format="%U" "$file") = "$owner" ] || \
-        chown "$owner" "$file" &> /dev/null|| sudo chown "$owner" "$file"
-      [ $(stat --format="%G" "$file") = "$group" ] || \
-        chgrp "$group" "$file" &> /dev/null || sudo chgrp "$group" "$file"
   done << EOF
 `cat $repo_file_metadata`
 EOF
