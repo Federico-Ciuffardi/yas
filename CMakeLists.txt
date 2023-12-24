@@ -36,7 +36,7 @@ file(GLOB_RECURSE YAS_FILES
 add_executable(yas ${YAS_FILES})
 
 target_include_directories(yas PUBLIC
-  src
+  include 
   lib 
   ${YAML_INCLUDE_DIRS}
   ${GIT2_INCLUDE_DIR}

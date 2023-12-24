@@ -1,10 +1,11 @@
-#include "YasRepo.h"
+#include <yas/YasRepo.hpp>
 
-#include <yas/GlobalConfig.h>
+#include <yas/GlobalConfig.hpp>
+
+#include <util/io.hpp>
 
 #include <filesystem>
 #include <iostream>
-#include <util/io.h>
 
 using std::cerr;
 using std::endl;
@@ -30,11 +31,10 @@ inline string nameFromPath(const path &p) {
 YasRepo::Paths::Paths(const string &name) {
   GlobalConfig &gc = GlobalConfig::getInstance();
 
-  gitDir     = gc.paths.reposDir / name;
-  syncDir    = gitDir;
-  configsDir = gitDir / ".yas";
+  gitDir    = gc.paths.reposDir / name;
+  configDir = gitDir / ".yas";
 
-  repoConfigFile = configsDir / "config";
+  repoConfigFile = configDir / "config";
 }
 
 /////////////
@@ -51,7 +51,7 @@ YasRepo::YasRepo(const path &p) : name(nameFromPath(p)), paths(name) {
 }
 
 // init
-void YasRepo::init() {
+void YasRepo::init(path _syncto) {
   if (exists(paths.repoConfigFile)) {
     cerr << "Could not init: the repo is already initialized" << endl;
     exit(1);
@@ -61,7 +61,12 @@ void YasRepo::init() {
   YAML::Node yml;
 
   //// mount
-  yml["sync_point"] = readStdio("sync_point", "$HOME");
+  if (_syncto.empty()) {
+    syncto = readStdio("syncto", "$HOME");
+  } else {
+    syncto = _syncto;
+  }
+  yml["syncto"] = syncto.string();
 
   //// write
   writeYaml(yml, paths.repoConfigFile);

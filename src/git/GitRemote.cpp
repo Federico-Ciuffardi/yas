@@ -1,7 +1,9 @@
-#include "GitRemote.h"
-#include "git/util.h"
+#include <git/GitRemote.hpp>
+
+#include <git/util.hpp>
 
 #include <git2/net.h>
+
 #include <iostream>
 
 using std::cerr;

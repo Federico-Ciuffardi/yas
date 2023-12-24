@@ -1,8 +1,10 @@
 #pragma once
 
+#include <util/io.hpp>
+
 #include <git2.h>
+
 #include <string>
-#include <util/io.h>
 
 using std::string;
 

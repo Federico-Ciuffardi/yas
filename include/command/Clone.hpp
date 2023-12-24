@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Command.h"
-#include <util/url.h>
+#include <command/Command.hpp>
+#include <util/url.hpp>
 
 class Clone : public Command {
 

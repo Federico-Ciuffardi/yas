@@ -1,15 +1,23 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
+#include <command/Clone.hpp>
+#include <command/Init.hpp>
+
 #include <tclap/CmdLine.h>
 #include <tclap/ValueArg.h>
 #include <tclap/YasStdOutput.h>
 
-#include <command/Clone.h>
-#include <command/Init.h>
+#include <algorithm>
+#include <filesystem>
+#include <iostream>
+#include <string>
 
-using namespace std;
-using namespace TCLAP;
+using std::vector;
+using std::filesystem::path;
+using TCLAP::Arg;
+using TCLAP::IgnoreRestVisitor;
+using TCLAP::UnlabeledMultiArg;
+using TCLAP::UnlabeledValueArg;
+using TCLAP::ValueArg;
+using TCLAP::ValuesConstraint;
 
 const static string version = "0.0.0";
 
@@ -86,6 +94,12 @@ int main(int argc, char **argv) {
       // declare commands
       TCLAP::CmdLine cmd(description, ' ', version);
 
+      /// synto
+      ValueArg<path> argSyncto("s", "syncto", "Path to sync files", false, "",
+                               "path");
+
+      cmd.add(argSyncto);
+
       /// url
       UnlabeledValueArg<string> argUrl(
           "url", "The url of an empty git repository", true, "", "git url");
@@ -96,7 +110,8 @@ int main(int argc, char **argv) {
 
       // build request
       Init init;
-      init.u = url(argUrl.getValue().c_str());
+      init.u      = url(argUrl.getValue().c_str());
+      init.syncto = argSyncto.getValue();
       init.execute();
     }
   } catch (TCLAP::ArgException &e) {

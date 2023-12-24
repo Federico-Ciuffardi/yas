@@ -2,8 +2,10 @@
 
 #pragma once
 
+#include <util/url.hpp>
+
 #include <git2.h>
-#include <util/url.h>
+
 #include <vector>
 
 using std::vector;

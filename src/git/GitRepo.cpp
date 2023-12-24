@@ -1,9 +1,11 @@
-#include "GitRepo.h"
+#include <git/GitRepo.hpp>
 
-#include <git/util.h>
+#include <git/util.hpp>
+
+#include <util/functional.hpp>
+
 #include <git2/types.h>
 #include <iostream>
-#include <util/functional.h>
 
 using std::cerr;
 using std::endl;

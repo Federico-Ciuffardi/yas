@@ -1,8 +1,10 @@
-#include "Init.h"
+#include <command/Init.hpp>
 
-#include <git/GitRemote.h>
+#include <yas/YasRepo.hpp>
+
+#include <git/GitRemote.hpp>
+
 #include <iostream>
-#include <yas/YasRepo.h>
 
 using std::cerr;
 using std::endl;
@@ -22,5 +24,5 @@ void Init::execute() {
   YasRepo yasRepo(u);
 
   // init
-  yasRepo.init();
+  yasRepo.init(syncto);
 }

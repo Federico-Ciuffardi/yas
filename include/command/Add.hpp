@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Command.h"
+#include <command/Command.hpp>
 
 class Add : public Command {
 public:

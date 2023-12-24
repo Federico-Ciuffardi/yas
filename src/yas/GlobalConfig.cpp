@@ -1,4 +1,4 @@
-#include "GlobalConfig.h"
+#include <yas/GlobalConfig.hpp>
 
 GlobalConfig &GlobalConfig::getInstance() {
   static GlobalConfig instance;

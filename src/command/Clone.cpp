@@ -1,5 +1,6 @@
-#include "Clone.h"
-#include <yas/YasRepo.h>
+#include <command/Clone.hpp>
+
+#include <yas/YasRepo.hpp>
 
 void Clone::execute() {
   YasRepo yasRepo(u);

@@ -1,10 +1,11 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <yaml-cpp/yaml.h>
 
 using std::ifstream;
 using std::ios;

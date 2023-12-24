@@ -2,12 +2,14 @@
 
 #pragma once
 
-#include <filesystem>
-#include <git/GitRemote.h>
+#include <git/GitRemote.hpp>
+#include <util/url.hpp>
+
 #include <git2.h>
-#include <string>
-#include <util/url.h>
+
 #include <vector>
+#include <filesystem>
+#include <string>
 
 using std::vector;
 using std::filesystem::path;
