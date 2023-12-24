@@ -26,7 +26,7 @@ class YasRepo {
 public:
   const std::string name;
   const Paths       paths;
-  fs::path          syncto;
+  fs::path          sync_to;
 
   // variable
 private:

@@ -132,7 +132,9 @@ void GitRepo::commit(const std::string &message, const std::string &name,
 
   // prettify message
   git_buf buffer;
-  error = git_message_prettify(&buffer, message.c_str(), 0, '#');
+  buffer.size = message.length();
+  buffer.ptr  = (char *)malloc(buffer.size);
+  error       = git_message_prettify(&buffer, message.c_str(), 0, '#');
   if (error < 0) {
     std::cerr << "Could not prettify message:" << std::endl
               << git_error_last()->message << std::endl;

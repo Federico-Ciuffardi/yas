@@ -48,7 +48,7 @@ YasRepo::YasRepo(const fs::path &p) : name(nameFromPath(p)), paths(name) {
 }
 
 // init
-void YasRepo::init(fs::path _syncto) {
+void YasRepo::init(fs::path _sync_to) {
   if (exists(paths.repoConfigFile)) {
     std::cerr << "Could not init: the repo is already initialized" << std::endl;
     exit(1);
@@ -58,12 +58,12 @@ void YasRepo::init(fs::path _syncto) {
   YAML::Node yml;
 
   //// mount
-  if (_syncto.empty()) {
-    syncto = readStdio("sync_point", "$HOME");
+  if (_sync_to.empty()) {
+    sync_to = readStdio("sync_point", "$HOME");
   } else {
-    syncto = _syncto;
+    sync_to = _sync_to;
   }
-  yml["syncto"] = syncto.string();
+  yml["sync_point"] = sync_to.string();
 
   //// write
   writeYaml(yml, paths.repoConfigFile);

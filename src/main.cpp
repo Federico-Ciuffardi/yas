@@ -55,10 +55,10 @@ void parse_init_args(std::vector<std::string> &subcommand_args) {
   TCLAP::CmdLine cmd(description, ' ', version);
 
   /// synto
-  TCLAP::ValueArg<fs::path> argSyncto("s", "syncto", "Path to sync files",
+  TCLAP::ValueArg<fs::path> arg_sync_to("s", "sync_to", "Path to sync files",
                                       false, "", "path");
 
-  cmd.add(argSyncto);
+  cmd.add(arg_sync_to);
 
   /// url
   TCLAP::UnlabeledValueArg<std::string> argUrl(
@@ -70,7 +70,7 @@ void parse_init_args(std::vector<std::string> &subcommand_args) {
 
   // build request
   Init init;
-  init.set_args({argUrl.getValue().c_str(), argSyncto.getValue()});
+  init.set_args({argUrl.getValue().c_str(), arg_sync_to.getValue()});
   init.execute();
 }
 
