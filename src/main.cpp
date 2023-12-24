@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
 
     /// command
     TCLAP::ValuesConstraint<std::string>  commandsConstraint(commands);
-    TCLAP::IgnoreRestVisitor         v;
-    TCLAP::UnlabeledValueArg<std::string> argCommand("command", "Command", true, "",
-                                         &commandsConstraint, false, &v);
+    TCLAP::IgnoreRestVisitor              v;
+    TCLAP::UnlabeledValueArg<std::string> argCommand(
+        "command", "Command", true, "", &commandsConstraint, false, &v);
     cmd.add(argCommand);
 
     /// command args
@@ -45,15 +45,15 @@ int main(int argc, char **argv) {
     std::vector<std::string> commandArgs = argCommandArgs.getValue();
     commandArgs.insert(commandArgs.begin(), 1,
                        "yas " + command); // TODO improve
-    TCLAP::Arg::endIgnoring();                   // needed to parse again
+    TCLAP::Arg::endIgnoring();            // needed to parse again
 
     if (command == "add") {
       // declare commands
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// file paths
-      TCLAP::UnlabeledMultiArg<std::string> argFiles("files", "Files to add", false,
-                                         "file paths");
+      TCLAP::UnlabeledMultiArg<std::string> argFiles("files", "Files to add",
+                                                     false, "file paths");
       cmd.add(argFiles);
 
       // parse
@@ -85,8 +85,8 @@ int main(int argc, char **argv) {
       TCLAP::CmdLine cmd(description, ' ', version);
 
       /// synto
-      TCLAP::ValueArg<fs::path> argSyncto("s", "syncto", "Path to sync files", false, "",
-                               "path");
+      TCLAP::ValueArg<fs::path> argSyncto("s", "syncto", "Path to sync files",
+                                          false, "", "path");
 
       cmd.add(argSyncto);
 

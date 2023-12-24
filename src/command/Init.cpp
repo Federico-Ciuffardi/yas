@@ -11,9 +11,10 @@ void Init::execute() {
   /// is empty?
   GitRemote gitRemote(u, GIT_DIRECTION_FETCH);
   if (!gitRemote.ls().empty()) {
-      std::cerr << "Could not init yas repository:" << std::endl
-         << "The provided git repo is not empty, please provide a empty repo"
-         << std::endl;
+    std::cerr
+        << "Could not init yas repository:" << std::endl
+        << "The provided git repo is not empty, please provide a empty repo"
+        << std::endl;
     exit(1);
   }
 

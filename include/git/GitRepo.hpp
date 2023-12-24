@@ -7,9 +7,9 @@
 
 #include <git2.h>
 
-#include <vector>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -29,7 +29,8 @@ public:
   void add(const std::vector<fs::path> &paths);
   void addAll();
   // commit
-  void commit(const std::string &message, const std::string &name, const std::string &email);
+  void commit(const std::string &message, const std::string &name,
+              const std::string &email);
   // push
   void push(const std::vector<std::string> &refspecs = {"refs/heads/master"});
   // destructor

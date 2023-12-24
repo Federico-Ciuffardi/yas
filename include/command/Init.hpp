@@ -11,7 +11,7 @@ class Init : public Command {
 
   // variable
 public:
-  url  u;
+  url      u;
   fs::path syncto;
 
   // functions

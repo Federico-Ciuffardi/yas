@@ -10,9 +10,9 @@
 namespace fs = std::filesystem;
 
 inline std::string nameFromUrl(const url &u) {
-    std::string name = u;
-  name        = name.substr(name.find_last_of('/') + 1);
-  name        = name.substr(0, name.find('.'));
+  std::string name = u;
+  name             = name.substr(name.find_last_of('/') + 1);
+  name             = name.substr(0, name.find('.'));
   return name;
 }
 
@@ -50,7 +50,7 @@ YasRepo::YasRepo(const fs::path &p) : name(nameFromPath(p)), paths(name) {
 // init
 void YasRepo::init(fs::path _syncto) {
   if (exists(paths.repoConfigFile)) {
-      std::cerr << "Could not init: the repo is already initialized" << std::endl;
+    std::cerr << "Could not init: the repo is already initialized" << std::endl;
     exit(1);
   }
 

@@ -14,8 +14,8 @@ GitRemote::GitRemote(const url &u, const git_direction &dir) {
   // create
   int error = git_remote_create_detached(&remote, u.c_str());
   if (error < 0) {
-      std::cerr << "Could not create detached remote:" << std::endl
-         << git_error_last()->message << std::endl;
+    std::cerr << "Could not create detached remote:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -24,8 +24,8 @@ GitRemote::GitRemote(const url &u, const git_direction &dir) {
   callbacks.credentials          = credentialsCB;
   error = git_remote_connect(remote, dir, &callbacks, NULL, NULL);
   if (error < 0) {
-      std::cerr << "Could not connect to detached remote:" << std::endl
-         << git_error_last()->message << std::endl;
+    std::cerr << "Could not connect to detached remote:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 }
@@ -34,8 +34,8 @@ GitRemote::GitRemote(git_repository *repo, const git_direction &dir) {
   // create
   int error = git_remote_lookup(&remote, repo, "origin");
   if (error < 0) {
-      std::cerr << "Could not lookup remote:" << std::endl
-         << git_error_last()->message << std::endl;
+    std::cerr << "Could not lookup remote:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -44,8 +44,8 @@ GitRemote::GitRemote(git_repository *repo, const git_direction &dir) {
   callbacks.credentials          = credentialsCB;
   error = git_remote_connect(remote, dir, &callbacks, NULL, NULL);
   if (error < 0) {
-      std::cerr << "Could not connect to remote:" << std::endl
-         << git_error_last()->message << std::endl;
+    std::cerr << "Could not connect to remote:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 }
@@ -56,7 +56,8 @@ std::vector<const git_remote_head *> GitRemote::ls() {
   const git_remote_head **headsArr;
   int                     error = git_remote_ls(&headsArr, &size, remote);
   if (error < 0) {
-      std::cerr << "Could not ls:" << std::endl << git_error_last()->message << std::endl;
+    std::cerr << "Could not ls:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 

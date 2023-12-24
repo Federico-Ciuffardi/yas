@@ -9,7 +9,8 @@
 
 namespace fs = std::filesystem;
 
-inline std::string readStdio(const std::string &prompt = "", const std::string &def = "") {
+inline std::string readStdio(const std::string &prompt = "",
+                             const std::string &def    = "") {
   std::string s;
   std::cout << prompt;
   if (!def.empty()) {
