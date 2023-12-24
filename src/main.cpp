@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 
-const std::string version     = "0.0.0";
-const std::string description = "Yet Another Syncer";
+const std::string version      = "0.0.0";
+const std::string description  = "Yet Another Syncer";
 const std::string command_name = "yas";
 
 void parse_add_args(std::vector<std::string> &subcommand_args) {
@@ -82,7 +82,7 @@ std::vector<std::string> parse_main_args(int argc, char **argv) {
   TCLAP::YasStdOutput yasStdOutput;
   cmd.setOutput(&yasStdOutput);
 
-  /// subcommand 
+  /// subcommand
   const std::vector<std::string>        subcommands = {"add", "clone", "init"};
   TCLAP::ValuesConstraint<std::string>  subcommands_constraint(subcommands);
   TCLAP::IgnoreRestVisitor              v; // stop parsing at the subcommand
@@ -103,7 +103,8 @@ std::vector<std::string> parse_main_args(int argc, char **argv) {
 
   /// get subcommand_args
   std::vector<std::string> subcommand_args = arg_subcommand_args.getValue();
-  subcommand_args.insert(subcommand_args.begin(), 1, command_name + " " + sub_command);
+  subcommand_args.insert(subcommand_args.begin(), 1,
+                         command_name + " " + sub_command);
   TCLAP::Arg::endIgnoring();
 
   return subcommand_args;
@@ -112,7 +113,8 @@ std::vector<std::string> parse_main_args(int argc, char **argv) {
 int main(int argc, char **argv) {
   try {
     std::vector<std::string> subcommand_args = parse_main_args(argc, argv);
-    const std::string subcommand = subcommand_args[0].substr(command_name.size() + 1);
+    const std::string        subcommand =
+        subcommand_args[0].substr(command_name.size() + 1);
     if (subcommand == "add") {
       parse_add_args(subcommand_args);
     } else if (subcommand == "clone") {
