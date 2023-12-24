@@ -11,8 +11,7 @@
 #include <filesystem>
 #include <string>
 
-using std::vector;
-using std::filesystem::path;
+namespace fs = std::filesystem;
 
 class GitRepo {
 
@@ -23,16 +22,16 @@ private:
   // functions
 public:
   // open
-  GitRepo(const path &p);
+  GitRepo(const fs::path &p);
   // clone
-  GitRepo(const url &u, const path &p);
+  GitRepo(const url &u, const fs::path &p);
   // add
-  void add(const vector<path> &paths);
+  void add(const std::vector<fs::path> &paths);
   void addAll();
   // commit
-  void commit(const string &message, const string &name, const string &email);
+  void commit(const std::string &message, const std::string &name, const std::string &email);
   // push
-  void push(const vector<string> &refspecs = {"refs/heads/master"});
+  void push(const std::vector<std::string> &refspecs = {"refs/heads/master"});
   // destructor
   ~GitRepo();
 

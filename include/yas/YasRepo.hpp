@@ -9,37 +9,35 @@
 #include <memory>
 #include <string>
 
-using std::string;
-using std::unique_ptr;
-using std::filesystem::path;
+namespace fs = std::filesystem;
 
 class YasRepo {
   // inner structs
   struct Paths {
-    path gitDir;
-    path configDir;
+    fs::path gitDir;
+    fs::path configDir;
 
-    path repoConfigFile;
+    fs::path repoConfigFile;
 
-    Paths(const string &name);
+    Paths(const std::string &name);
   };
 
   // const
 public:
-  const string name;
+  const std::string name;
   const Paths  paths;
-  path         syncto;
+  fs::path         syncto;
 
   // variable
 private:
-  unique_ptr<GitRepo> gitRepo;
+  std::unique_ptr<GitRepo> gitRepo;
 
   // functions
 public:
-  YasRepo(const path &p);
+  YasRepo(const fs::path &p);
   YasRepo(const url &u);
-  path getLocal();
-  void init(path);
+  fs::path getLocal();
+  void init(fs::path);
 
 private:
   YasRepo();

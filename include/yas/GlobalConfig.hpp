@@ -1,17 +1,15 @@
 #pragma once
 
 #include <filesystem>
-#include <string>
 
-using std::string;
-using std::filesystem::path;
+namespace fs = std::filesystem;
 
 class GlobalConfig {
   // inner structs
   struct Paths {
-    path dataDir;
-    path configDir;
-    path reposDir;
+    fs::path dataDir;
+    fs::path configDir;
+    fs::path reposDir;
   };
 
   // singleton boilerplate

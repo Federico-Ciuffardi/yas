@@ -6,17 +6,14 @@
 
 #include <iostream>
 
-using std::cerr;
-using std::endl;
-
 void Init::execute() {
   // validate repo before initialize
   /// is empty?
   GitRemote gitRemote(u, GIT_DIRECTION_FETCH);
   if (!gitRemote.ls().empty()) {
-    cerr << "Could not init yas repository:" << endl
+      std::cerr << "Could not init yas repository:" << std::endl
          << "The provided git repo is not empty, please provide a empty repo"
-         << endl;
+         << std::endl;
     exit(1);
   }
 

@@ -7,28 +7,25 @@
 #include <filesystem>
 #include <iostream>
 
-using std::cerr;
-using std::endl;
-using std::make_unique;
-using std::filesystem::exists;
+namespace fs = std::filesystem;
 
-inline string nameFromUrl(const url &u) {
-  string name = u;
+inline std::string nameFromUrl(const url &u) {
+    std::string name = u;
   name        = name.substr(name.find_last_of('/') + 1);
   name        = name.substr(0, name.find('.'));
   return name;
 }
 
-inline string nameFromPath(const path &p) {
-  string name = p;
-  name        = name.substr(name.find_last_of('/') + 1);
+inline std::string nameFromPath(const fs::path &p) {
+  std::string name = p;
+  name             = name.substr(name.find_last_of('/') + 1);
   return name;
 }
 
 //////////////////
 // YasRepoPaths //
 //////////////////
-YasRepo::Paths::Paths(const string &name) {
+YasRepo::Paths::Paths(const std::string &name) {
   GlobalConfig &gc = GlobalConfig::getInstance();
 
   gitDir    = gc.paths.reposDir / name;
@@ -46,14 +43,14 @@ YasRepo::YasRepo(const url &u) : name(nameFromUrl(u)), paths(name) {
   gitRepo = make_unique<GitRepo>(u, paths.gitDir);
 }
 
-YasRepo::YasRepo(const path &p) : name(nameFromPath(p)), paths(name) {
-  gitRepo = make_unique<GitRepo>(p);
+YasRepo::YasRepo(const fs::path &p) : name(nameFromPath(p)), paths(name) {
+  gitRepo = std::make_unique<GitRepo>(p);
 }
 
 // init
-void YasRepo::init(path _syncto) {
+void YasRepo::init(fs::path _syncto) {
   if (exists(paths.repoConfigFile)) {
-    cerr << "Could not init: the repo is already initialized" << endl;
+      std::cerr << "Could not init: the repo is already initialized" << std::endl;
     exit(1);
   }
 

@@ -1,24 +1,22 @@
 #include <git/GitRepo.hpp>
 
 #include <git/util.hpp>
-
 #include <util/functional.hpp>
 
 #include <git2/types.h>
+
 #include <iostream>
 
-using std::cerr;
-using std::endl;
-using std::filesystem::create_directories;
+namespace fs = std::filesystem;
 
 //////////////////
 // Constructors //
 //////////////////
 
 // clone to path
-GitRepo::GitRepo(const url &u, const path &p) {
+GitRepo::GitRepo(const url &u, const fs::path &p) {
   // create dir if not exists
-  create_directories(p);
+  fs::create_directories(p);
 
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
@@ -34,22 +32,22 @@ GitRepo::GitRepo(const url &u, const path &p) {
   // execute clone
   int error = git_clone(&repo, u.c_str(), p.c_str(), &options);
   if (error < 0) {
-    cerr << "Could not clone git repository:" << endl
-         << git_error_last()->message << endl;
+    std::cerr << "Could not clone git repository:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 }
 
 // open
-GitRepo::GitRepo(const path &p) {
+GitRepo::GitRepo(const fs::path &p) {
   // init libgit2 (probably first time interacting with git)
   git_libgit2_init();
 
   // open
   int error = git_repository_open(&repo, p.c_str());
   if (error < 0) {
-    cerr << "Could not open git repository:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not open git repository:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 }
@@ -63,36 +61,36 @@ GitRepo::~GitRepo() {
 //////////////
 
 // add
-void GitRepo::add(const vector<path> &paths) {
+void GitRepo::add(const std::vector<fs::path> &paths) {
   // load index
   git_index *index = NULL;
   int        error = git_repository_index(&index, repo);
   if (error < 0) {
-    cerr << "Could not get the repository index:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not get the repository index:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
   // from `vector<path>` to `vector<char*>`
-  function<char *(const path &)> toCharArr =
-      ([](const path &p) { return (char *)p.c_str(); });
-  vector<char *> pathsCharArr = mapf(paths, toCharArr);
+  std::function<char *(const fs::path &)> toCharArr =
+      ([](const fs::path &p) { return (char *)p.c_str(); });
+  std::vector<char *> pathsCharArr = mapf(paths, toCharArr);
 
   // add to index
   const git_strarray pathspec = {&pathsCharArr[0], pathsCharArr.size()};
   error =
       git_index_add_all(index, &pathspec, GIT_INDEX_ADD_DEFAULT, NULL, NULL);
   if (error < 0) {
-    cerr << "Could not add to index:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not add to index:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
   // write index
   error = git_index_write(index);
   if (error < 0) {
-    cerr << "Could not write index:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not write index:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -105,14 +103,14 @@ void GitRepo::addAll() {
 }
 
 // commit
-void GitRepo::commit(const string &message, const string &name,
-                     const string &email) {
+void GitRepo::commit(const std::string &message, const std::string &name,
+                     const std::string &email) {
   // load index
   git_index *index = NULL;
   int        error = git_repository_index(&index, repo);
   if (error < 0) {
-    cerr << "Could not get the repository index:" << endl
-         << git_error_last()->message << endl;
+    std::cerr << "Could not get the repository index:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -120,14 +118,14 @@ void GitRepo::commit(const string &message, const string &name,
   git_oid tree_oid;
   error = git_index_write_tree(&tree_oid, index);
   if (error < 0) {
-    cerr << "Could not write tree:" << endl
-         << git_error_last()->message << endl;
+    std::cerr << "Could not write tree:" << std::endl
+              << git_error_last()->message << std::endl;
     exit(1);
   }
   git_tree *tree;
   error = git_tree_lookup(&tree, repo, &tree_oid);
   if (error < 0) {
-    cerr << "Could not get tree:" << endl << git_error_last()->message << endl;
+      std::cerr << "Could not get tree:" << std::endl << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -135,8 +133,8 @@ void GitRepo::commit(const string &message, const string &name,
   git_buf buffer;
   error = git_message_prettify(&buffer, message.c_str(), 0, '#');
   if (error < 0) {
-    cerr << "Could not prettify message:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not prettify message:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -144,8 +142,8 @@ void GitRepo::commit(const string &message, const string &name,
   git_signature *signature;
   error = git_signature_now(&signature, name.c_str(), email.c_str());
   if (error < 0) {
-    cerr << "Could not create signature:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not create signature:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -154,8 +152,8 @@ void GitRepo::commit(const string &message, const string &name,
   git_commit_create_v(&commit_oid, repo, "HEAD", signature, signature, NULL,
                       buffer.ptr, tree, 0);
   if (error < 0) {
-    cerr << "Could not create commit:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not create commit:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 
@@ -166,24 +164,24 @@ void GitRepo::commit(const string &message, const string &name,
   git_index_free(index);
 }
 
-void GitRepo::push(const vector<string> &refspecs) {
+void GitRepo::push(const std::vector<std::string> &refspecs) {
 
   // create remote
   GitRemote remote(repo, GIT_DIRECTION_PUSH);
 
   // refspec
-  function<char *(const string &)> toCharArr = [](const string &s) {
+  std::function<char *(const std::string &)> toCharArr = [](const std::string &s) {
     return (char *)s.c_str();
   };
-  vector<char *>     refspecsCharArr  = mapf(refspecs, toCharArr);
+  std::vector<char *>     refspecsCharArr  = mapf(refspecs, toCharArr);
   const git_strarray refspecsStrarray = {&refspecsCharArr[0],
                                          refspecsCharArr.size()};
 
   // push
   int error = git_remote_push(remote.remote, &refspecsStrarray, NULL);
   if (error < 0) {
-    cerr << "Could not push to remote:" << endl
-         << git_error_last()->message << endl;
+      std::cerr << "Could not push to remote:" << std::endl
+         << git_error_last()->message << std::endl;
     exit(1);
   }
 }

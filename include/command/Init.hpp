@@ -5,14 +5,14 @@
 
 #include <filesystem>
 
-using std::filesystem::path;
+namespace fs = std::filesystem;
 
 class Init : public Command {
 
   // variable
 public:
   url  u;
-  path syncto;
+  fs::path syncto;
 
   // functions
 public:

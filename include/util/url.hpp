@@ -2,8 +2,6 @@
 
 #include <string>
 
-using std::string;
-
-class url : public string {
-  using string::string;
+class url : public std::string {
+  using std::string::string;
 };

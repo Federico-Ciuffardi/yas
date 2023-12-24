@@ -8,8 +8,6 @@
 
 #include <vector>
 
-using std::vector;
-
 class GitRepo; // forward declaration
 
 class GitRemote {
@@ -21,7 +19,7 @@ private:
   // functions
 public:
   GitRemote(const url &u, const git_direction &dir);
-  vector<const git_remote_head *> ls();
+  std::vector<const git_remote_head *> ls();
   ~GitRemote();
 
 private:
